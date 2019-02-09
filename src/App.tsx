@@ -17,7 +17,7 @@ class App extends Component {
                 </div>
                 <div className="content">
                     <div className="attendees">
-
+                        <div className="attendees__header">Participants</div>
                     </div>
                     <div className="viewer">
                         <div className="screen">
@@ -32,6 +32,9 @@ class App extends Component {
                                     <ul className="actions-container" role="toolbar">
                                         <li className="action-item" role="presentation">
                                             <a className="action-label icon debug-action screenshot" role="button"></a>
+                                        </li>
+                                        <li className="action-item" role="presentation">
+                                            <a className="action-label icon debug-action microphone" role="button"></a>
                                         </li>
                                         <li className="action-item" role="presentation">
                                             <a className="action-label icon debug-action clipboard" role="button"></a>
@@ -50,6 +53,9 @@ class App extends Component {
                         </div>
                     </div>
                     <div className="chat">
+                        <div className="chat__header">Chat</div>
+
+
                         <div className="chat-messages">
                             <div className="message">
                                 <div className="author">

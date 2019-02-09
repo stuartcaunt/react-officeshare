@@ -43,7 +43,16 @@
     width: 100px;
     flex: 0 0 200px;
     border-right: 2px solid #eaeced;
-    background: #f5f6fa;
+    &__header {
+      flex: 0 0 40px;
+      background-color: #f5f6f7;
+      border-bottom: 1px solid #dddfe2;
+      padding-left: 5px;
+      align-items: center;
+      display: flex;
+      font-weight: 600;
+    }
+
   }
   .chat {
 
@@ -53,7 +62,16 @@
     width: 100px;
     flex: 0 0 350px;
     border-left: 2px solid #eaeced;
-    background: #f5f6fa;
+
+    &__header {
+      flex: 0 0 40px;
+      background-color: #f5f6f7;
+      border-bottom: 1px solid #dddfe2;
+      padding-left: 5px;
+      align-items: center;
+      display: flex;
+      font-weight: 600;
+    }
     .chat-messages {
       padding: 10px;
 
@@ -105,7 +123,6 @@
   align-items: center;
   padding: 10px;
 
-
   background-color: #4267b2;
   border-bottom: 1px solid #29487d;
 
@@ -134,7 +151,7 @@
 
 .container {
   display: grid;
-  grid-template-columns:auto 200px;
+  grid-template-columns: auto 200px;
   grid-template-areas: "header header header" "content content content";
   background-color: #fff;
   width: 100vw;
@@ -172,6 +189,11 @@
     &.settings {
       background-image: url("http://localhost:8001/cog.svg");
     }
+
+    &.microphone {
+      background-image: url("http://localhost:8001/microphone.svg");
+    }
+
     &.exit-full-screen {
       background-image: url("http://localhost:8001/hang_up.png");
     }
@@ -208,9 +230,6 @@
   }
 }
 
-
-
-
 .toolbar {
   z-index: 200;
   height: 50px;
@@ -231,6 +250,9 @@
     }
     &.exit-full-screen {
       background-image: url("http://localhost:8001/hang_up.png");
+    }
+    &.microphone {
+      background-image: url("http://localhost:8001/microphone.svg");
     }
   }
 
