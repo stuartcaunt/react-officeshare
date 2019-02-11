@@ -1,53 +1,145 @@
 import React, {Component} from 'react';
 import './App.scss';
+import {ToastContainer, toast} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 class App extends Component {
+
+
+    public componentDidMount() {
+
+        const icon = <span><i aria-hidden="true" className="fas fa-door-open"/> Stuart caunt has entered the room</span>
+
+
+        toast.success(icon, {
+            autoClose: 2000,
+            hideProgressBar: true,
+
+
+        });
+
+        toast.success("Stuart Caunt is now broadcasting his screen", {
+            progress: 0,
+        });
+
+
+        toast.error("Stuart Caunt has exited the room", {
+            progress: 0,
+        });
+    }
+
     render() {
         return (
             <div className="container">
+                <ToastContainer/>
+
                 <div className="header">
 
                     <div className="left">
-                        <i className="fas fa-users"></i><span>10 participants</span>
+                        <i className="fas fa-users"/><span>10 participants</span>
                     </div>
                     <div className="center">My room</div>
                     <div className="right">
-                        <i className="far fa-comments"></i>
+                        <i className="far fa-comments"/>
                     </div>
                 </div>
                 <div className="content">
-                    <div className="attendees">
-                        <div className="attendees__header">Participants</div>
+                    <div className="participants">
+                        <div className="participants__header">Participants</div>
+                        <div className="participants__list">
+                            <div className="participants">
+                                <div className="participant">
+                                    <img
+                                        src="https://4.bp.blogspot.com/-8P1FMWl3kHo/WuC-GbctJcI/AAAAAAAAASc/X5mB7KR8y8oMxmpNNmy9QqNnwlc07Fw9QCLcBGAs/s640/ubuntu1804_screenshots.png"/>
+                                    <div className="participant__user">
+                                        <span className="participant__user__content">
+                                            <span className="participant__user__username">Jamie Hall</span>
+                                            <span
+                                                className="participant__user__status participant__user__status--online">
+                                                <i className="fa fa-circle"/>
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="participant">
+                                    <img
+                                        src="https://cdn.arstechnica.net/wp-content/uploads/2011/07/lion_gallery_intro-4e24a11-intro.png"/>
+                                    <div className="participant__user">
+                                        <span className="participant__user__content">
+                                            <span className="participant__user__username">Stuart Caunt</span>
+                                            <span
+                                                className="participant__user__status participant__user__status--offline">
+                                                <i className="fa fa-circle"/>
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="participant">
+                                    <img
+                                        src="https://www.extremetech.com/wp-content/uploads/2015/10/Windows-10-desktop-640x353.jpg"/>
+                                    <div className="participant__user">
+                                        <span className="participant__user__content">
+                                            <span className="participant__user__username">Joe Bloggs</span>
+                                            <span
+                                                className="participant__user__status participant__user__status--offline">
+                                                <i className="fa fa-circle"/>
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                     <div className="viewer">
                         <div className="screen">
 
-                            <img
-                                src="https://www.ghacks.net/wp-content/uploads/2018/03/Elementary-Applications-Menu.jpeg"/>
-                        </div>
-                        <div className="participants">
-
-                            <div className="toolbar">
+                            <div className="debug-toolbar">
                                 <div className="action-bar">
                                     <ul className="actions-container" role="toolbar">
                                         <li className="action-item" role="presentation">
-                                            <a className="action-label icon debug-action screenshot" role="button"></a>
+                                            <a className="action-label icon debug-action screenshot" role="button"/>
                                         </li>
                                         <li className="action-item" role="presentation">
-                                            <a className="action-label icon debug-action microphone" role="button"></a>
+                                            <a className="action-label icon debug-action microphone" role="button"/>
                                         </li>
                                         <li className="action-item" role="presentation">
-                                            <a className="action-label icon debug-action clipboard" role="button"></a>
+                                            <a className="action-label icon debug-action clipboard" role="button"/>
                                         </li>
                                         <li className="action-item" role="presentation">
-                                            <a className="action-label icon debug-action settings" role="button"></a>
+                                            <a className="action-label icon debug-action settings" role="button"/>
                                         </li>
                                         <li className="action-item" role="presentation">
                                             <a className="action-label icon debug-action exit-full-screen"
-                                               role="button"></a>
+                                               role="button"/>
                                         </li>
                                     </ul>
                                 </div>
+                            </div>
+
+                            <img
+                                src="https://www.ghacks.net/wp-content/uploads/2018/03/Elementary-Applications-Menu.jpeg"/>
+                        </div>
+                        <div className="toolbar">
+                            <div className="action-bar">
+                                <ul className="actions-container" role="toolbar">
+                                    <li className="action-item" role="presentation">
+                                        <a className="action-label icon debug-action screenshot" role="button"/>
+                                    </li>
+                                    <li className="action-item" role="presentation">
+                                        <a className="action-label icon debug-action microphone" role="button"/>
+                                    </li>
+                                    <li className="action-item" role="presentation">
+                                        <a className="action-label icon debug-action clipboard" role="button"/>
+                                    </li>
+                                    <li className="action-item" role="presentation">
+                                        <a className="action-label icon debug-action settings" role="button"/>
+                                    </li>
+                                    <li className="action-item" role="presentation">
+                                        <a className="action-label icon debug-action exit-full-screen"
+    role="button"/>
+                                    </li>
+                                </ul>
                             </div>
 
                         </div>

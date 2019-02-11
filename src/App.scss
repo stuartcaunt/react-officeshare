@@ -31,18 +31,12 @@
         display: block
       }
     }
-    .participants {
-      flex: 0 0 52px;
-      background: #1e1e1e;
-    }
   }
-  .attendees {
+  .participants {
     flex-direction: column;
     align-items: stretch;
     display: flex;
-    width: 100px;
     flex: 0 0 200px;
-    border-right: 2px solid #eaeced;
     &__header {
       flex: 0 0 40px;
       background-color: #f5f6f7;
@@ -51,6 +45,47 @@
       align-items: center;
       display: flex;
       font-weight: 600;
+    }
+    &__list {
+      padding: 5px;
+      .participant {
+        display: block;
+        width: 190px;
+        height: 113px;
+        margin-bottom: 5px;
+        img {
+          width: 190px;
+          height: 113px;
+
+        }
+        position: relative;
+        border: 2px solid #1e1e1e;
+        &__user {
+          position: absolute;
+          left: 0;
+          color: white;
+          bottom: 0;
+          width: 100%;
+          height: auto;
+          background-color: rgba(0, 0, 0, 0.7);
+          &__content {
+            padding: 5px;
+            display: block;
+            height: auto;
+          }
+          &__username {
+          }
+          &__status {
+            float: right;
+            &--online {
+              color: #21b345;
+            }
+            &--offline {
+              color: #dc3545;
+            }
+          }
+        }
+      }
     }
 
   }
@@ -125,8 +160,8 @@
 
   background-color: #4267b2;
   border-bottom: 2px solid #29487d;
-
   .left {
+    font-size: 1em;
     flex: 0 0 150px;
     text-align: left;
     color: white;
@@ -140,8 +175,11 @@
     color: white;
     font-weight: bold;
     text-align: center;
+    font-size: 1.2em;
+
   }
   .right {
+    font-size: 1em;
     width: 100px;
     flex: 0 0 150px;
     text-align: right;
@@ -181,21 +219,21 @@
 
   .debug-action {
     &.screenshot {
-      background-image: url("http://localhost:8001/expand-solid.svg");
+      background-image: url("/images/expand-solid.svg");
     }
     &.clipboard {
-      background-image: url("http://localhost:8001/desktop.svg");
+      background-image: url("/images/desktop.svg");
     }
     &.settings {
-      background-image: url("http://localhost:8001/cog.svg");
+      background-image: url("/images/cog.svg");
     }
 
     &.microphone {
-      background-image: url("http://localhost:8001/microphone.svg");
+      background-image: url("/images/microphone.svg");
     }
 
     &.exit-full-screen {
-      background-image: url("http://localhost:8001/hang_up.png");
+      background-image: url("/images/hang_up.png");
     }
   }
 
@@ -232,27 +270,27 @@
 
 .toolbar {
   z-index: 200;
-  height: 50px;
   width: 100%;
-  background-color: rgba(14, 14, 14, 0.85);
   border: none;
   display: flex;
   justify-content: center;
+  flex: 0 0 52px;
+  background: #1e1e1e;
   .debug-action {
     &.screenshot {
-      background-image: url("http://localhost:8001/expand-solid.svg");
+      background-image: url("/images/expand-solid.svg");
     }
     &.clipboard {
-      background-image: url("http://localhost:8001/desktop.svg");
+      background-image: url("/images/desktop.svg");
     }
     &.settings {
-      background-image: url("http://localhost:8001/cog.svg");
+      background-image: url("/images/cog.svg");
     }
     &.exit-full-screen {
-      background-image: url("http://localhost:8001/hang_up.png");
+      background-image: url("/images/hang_up.png");
     }
     &.microphone {
-      background-image: url("http://localhost:8001/microphone.svg");
+      background-image: url("/images/microphone.svg");
     }
   }
 
