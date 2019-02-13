@@ -34,7 +34,7 @@ module.exports = function (server) {
 
       // Emit message to other room members to say we have entered the room
       socket.to(room).emit('join', {
-        clientId: socket.id,
+        peerId: socket.id,
         name: username
       });
 
@@ -51,7 +51,7 @@ module.exports = function (server) {
         console.log(socket.userdata.username + ' (' + socket.id + ') is leaving room ' + socket.userdata.room);
 
         socket.to(socket.userdata.room).emit('leave', {
-          clientId: socket.id,
+          peerId: socket.id,
           name: socket.userdata.username
         });
 
@@ -61,31 +61,31 @@ module.exports = function (server) {
     }
 
     function offer(message) {
-      const {clientId, data} = message;
-      console.log(socket.userdata.username + ' (' + socket.id + ') sending offer to ' + clientId);
+      const {peerId, data} = message;
+      console.log(socket.userdata.username + ' (' + socket.id + ') sending offer to ' + peerId);
 
-      io.to(clientId).emit('offer', {
-        clientId: socket.id,
+      io.to(peerId).emit('offer', {
+        peerId: socket.id,
         data: data
       });
     }
 
     function answer(message) {
-      const {clientId, data} = message;
-      console.log(socket.userdata.username + ' (' + socket.id + ') sending answer to ' + clientId);
+      const {peerId, data} = message;
+      console.log(socket.userdata.username + ' (' + socket.id + ') sending answer to ' + peerId);
 
-      io.to(clientId).emit('answer', {
-        clientId: socket.id,
+      io.to(peerId).emit('answer', {
+        peerId: socket.id,
         data: data
       });
     }
 
     function candidate(message) {
-      const {clientId, data} = message;
-      console.log(socket.userdata.username + ' (' + socket.id + ') sending candidate to ' + clientId);
+      const {peerId, data} = message;
+      console.log(socket.userdata.username + ' (' + socket.id + ') sending candidate to ' + peerId);
 
-      io.to(clientId).emit('candidate', {
-        clientId: socket.id,
+      io.to(peerId).emit('candidate', {
+        peerId: socket.id,
         data: data
       });
     }
@@ -97,7 +97,7 @@ module.exports = function (server) {
         socket.userdata.streaming = true;
 
         socket.to(socket.userdata.room).emit('stream_started', {
-          clientId: socket.id,
+          peerId: socket.id,
         });
       }
     }
@@ -109,7 +109,7 @@ module.exports = function (server) {
         socket.userdata.streaming = false;
 
         socket.to(socket.userdata.room).emit('stream_stopped', {
-          clientId: socket.id,
+          peerId: socket.id,
         });
       }
     }

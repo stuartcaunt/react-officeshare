@@ -17,6 +17,8 @@ export class RoomService {
 
           const room = new Room(socket, otherClients, roomName, userName);
           resolve(room);
+
+          // TODO handle errors (modify return data)
         });
 
       });
