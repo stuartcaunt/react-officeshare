@@ -7,7 +7,10 @@ export class RoomService {
     const promise = new Promise<Room>(function (resolve, reject) {
 
       // Connect to server
-      const socket = socketIoClient.connect(`https://${window.location.hostname}:8443`, {});
+      const socket = socketIoClient.connect(`https://${window.location.hostname}:8443`, {
+        reconnection: false
+      });
+
       socket.on('connect', () => {
         console.log('Connected with id ' + socket.id);
 

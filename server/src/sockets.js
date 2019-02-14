@@ -17,16 +17,16 @@ module.exports = function (server) {
     socket.on('stream_stopped', streamStopped);
 
     function join(data, cb) {
-      const room = data.room || 'room-' + uuid();
+      const roomName = data.roomName || 'room-' + uuid();
       const userName = data.userName;
 
-      console.log(userName + ' (' + socket.id + ') is joining room ' + room);
+      console.log(userName + ' (' + socket.id + ') is joining room ' + roomName);
 
       // leave any existing rooms
       leave();
 
       const roomData = {
-        clients: getClientsInRoom(room)
+        clients: getClientsInRoom(roomName)
       };
 
       if (cb) {
@@ -34,29 +34,29 @@ module.exports = function (server) {
       }
 
       // Emit message to other room members to say we have entered the room
-      socket.to(room).emit('join', {
+      socket.to(roomName).emit('join', {
         peerId: socket.id,
         userName: userName
       });
 
-      socket.join(room);
+      socket.join(roomName);
       socket.userData = {
-        room: room,
+        roomName: roomName,
         userName: userName,
         streaming: false
       };
     }
 
     function leave() {
-      if (socket.userData && socket.userData.room) {
-        console.log(socket.userData.userName + ' (' + socket.id + ') is leaving room ' + socket.userData.room);
+      if (socket.userData && socket.userData.roomName) {
+        console.log(socket.userData.userName + ' (' + socket.id + ') is leaving room ' + socket.userData.roomName);
 
-        socket.to(socket.userData.room).emit('leave', {
+        socket.to(socket.userData.roomName).emit('leave', {
           peerId: socket.id,
           userName: socket.userData.userName
         });
 
-        socket.leave(socket.userData.room);
+        socket.leave(socket.userData.roomName);
         socket.userData = undefined;
       }
     }
@@ -92,24 +92,24 @@ module.exports = function (server) {
     }
 
     function streamStarted() {
-      if (socket.userData && socket.userData.room) {
-        console.log(socket.userData.userName + ' (' + socket.id + ') started streaming to room ' + socket.userData.room);
+      if (socket.userData && socket.userData.roomName) {
+        console.log(socket.userData.userName + ' (' + socket.id + ') started streaming to room ' + socket.userData.roomName);
 
         socket.userData.streaming = true;
 
-        socket.to(socket.userData.room).emit('stream_started', {
+        socket.to(socket.userData.roomName).emit('stream_started', {
           peerId: socket.id,
         });
       }
     }
 
     function streamStopped() {
-      if (socket.userData && socket.userData.room) {
-        console.log(socket.userData.userName + ' (' + socket.id + ') stopped streaming to room ' + socket.userData.room);
+      if (socket.userData && socket.userData.roomName) {
+        console.log(socket.userData.userName + ' (' + socket.id + ') stopped streaming to room ' + socket.userData.roomName);
 
         socket.userData.streaming = false;
 
-        socket.to(socket.userData.room).emit('stream_stopped', {
+        socket.to(socket.userData.roomName).emit('stream_stopped', {
           peerId: socket.id,
         });
       }
