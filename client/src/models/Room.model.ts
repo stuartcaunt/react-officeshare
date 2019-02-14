@@ -77,6 +77,12 @@ export class Room {
     this._socket.emit('stream_stopped');
   }
 
+  public disconnect() {
+    this.stopStreaming();
+
+    this._socket.emit('leave');
+  }
+
   public emit(messageType: string, data: any) {
     this._socket.emit(messageType, data);
   }
