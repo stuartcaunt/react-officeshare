@@ -22,7 +22,8 @@
     "socket.io-client": "^2.2.0",
     "typescript": "3.3.3",
     "webpack": "^4.19.1",
-    "webpack-dev-server": "^3.1.9"
+    "webpack-dev-server": "^3.1.9",
+    "react-router-dom": "latest"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -38,5 +39,8 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "devDependencies": {
+    "eslint": "^5.13.0"
+  }
 }
