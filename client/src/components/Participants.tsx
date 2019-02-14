@@ -1,10 +1,19 @@
 import React, {Component} from 'react';
 import {Participant} from "./Participant";
+import {Peer} from '../models';
+import {BehaviorSubject} from 'rxjs';
 
-export class Participants extends Component<{ participants: string[] }, {}> {
+export class Participants extends Component<{ participants: BehaviorSubject<Array<Peer>> }, {}> {
 
-    constructor(props: { participants: string[] }) {
+    private _participants: Array<Peer>;
+
+    constructor(props: { participants: BehaviorSubject<Array<Peer>> }) {
         super(props);
+
+        props.participants.subscribe(participants => {
+          this._participants = participants;
+          this.renderParticipants();
+        })
     }
 
 
@@ -12,10 +21,9 @@ export class Participants extends Component<{ participants: string[] }, {}> {
      * Render a list of participants currently in the room
      */
     private renderParticipants() {
-        const {participants} = this.props;
-        if (participants.length > 0) {
-            return participants.map((participant, index) => (
-                <Participant key={index} username={participant}/>
+        if (this._participants.length > 0) {
+            return this._participants.map((participant, index) => (
+                <Participant key={index} peer={participant}/>
             ));
         }
         return [];

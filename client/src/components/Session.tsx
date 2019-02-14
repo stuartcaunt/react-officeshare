@@ -40,7 +40,7 @@ export class Session extends Component<{ room: Room }, { isChatHidden: boolean }
         <ToastContainer/>
         <Header participants={20} title={"My room 1"} toggleChat={this.handleChatToggle}/>
         <div className="content">
-          <Participants participants={['Jamie Hall', 'Stuart Caunt', 'Joe Bloggs']}/>
+          <Participants participants={this.props.room.remotePeers$}/>
           <div className="viewer">
             <Screen/>
             <Toolbar/>

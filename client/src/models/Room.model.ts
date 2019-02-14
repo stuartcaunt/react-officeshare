@@ -3,14 +3,14 @@ import {BehaviorSubject} from 'rxjs';
 
 export class Room {
   private _remotePeers: Array<Peer> = new Array<Peer>();
-  private _remotePeerIds$: BehaviorSubject<Array<string>> = new BehaviorSubject(new Array<string>());
+  private _remotePeers$: BehaviorSubject<Array<Peer>> = new BehaviorSubject(new Array<Peer>());
 
   private _localPeer: Peer = null;
 
   private _activePeer$: BehaviorSubject<Peer> = new BehaviorSubject<Peer>(null);
 
-  get remotePeerIds$(): BehaviorSubject<Array<string>> {
-    return this._remotePeerIds$;
+  get remotePeers$(): BehaviorSubject<Array<Peer>> {
+    return this._remotePeers$;
   }
 
   get activePeer(): Peer {
@@ -182,7 +182,7 @@ export class Room {
     this._remotePeers.push(peer);
 
     // Notify change to room participants
-    this._remotePeerIds$.next(this._remotePeers.map(peer => peer.id));
+    this._remotePeers$.next(this._remotePeers.map(peer => peer));
 
     return peer;
   }
@@ -200,7 +200,7 @@ export class Room {
       this._remotePeers = this._remotePeers.filter(remotePeer => remotePeer.id !== remotePeerId);
 
       // Notify change to room participants
-      this._remotePeerIds$.next(this._remotePeers.map(peer => peer.id));
+      this._remotePeers$.next(this._remotePeers.map(peer => peer));
     }
   }
 }
