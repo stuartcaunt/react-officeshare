@@ -6,6 +6,7 @@ module.exports = function (server) {
 
   io.sockets.on('connection', function (socket) {
 
+    // Set up listeners
     socket.on('join', join);
     socket.on('leave', leave);
     socket.on('disconnect', leave);
@@ -17,9 +18,9 @@ module.exports = function (server) {
 
     function join(data, cb) {
       const room = data.room || 'room-' + uuid();
-      const username = data.username;
+      const userName = data.userName;
 
-      console.log(username + ' (' + socket.id + ') is joining room ' + room);
+      console.log(userName + ' (' + socket.id + ') is joining room ' + room);
 
       // leave any existing rooms
       leave();
@@ -35,34 +36,34 @@ module.exports = function (server) {
       // Emit message to other room members to say we have entered the room
       socket.to(room).emit('join', {
         peerId: socket.id,
-        name: username
+        userName: userName
       });
 
       socket.join(room);
-      socket.userdata = {
+      socket.userData = {
         room: room,
-        username: username,
+        userName: userName,
         streaming: false
       };
     }
 
     function leave() {
-      if (socket.userdata && socket.userdata.room) {
-        console.log(socket.userdata.username + ' (' + socket.id + ') is leaving room ' + socket.userdata.room);
+      if (socket.userData && socket.userData.room) {
+        console.log(socket.userData.userName + ' (' + socket.id + ') is leaving room ' + socket.userData.room);
 
-        socket.to(socket.userdata.room).emit('leave', {
+        socket.to(socket.userData.room).emit('leave', {
           peerId: socket.id,
-          name: socket.userdata.username
+          userName: socket.userData.userName
         });
 
-        socket.leave(socket.userdata.room);
-        socket.userdata = undefined;
+        socket.leave(socket.userData.room);
+        socket.userData = undefined;
       }
     }
 
     function offer(message) {
       const {peerId, data} = message;
-      console.log(socket.userdata.username + ' (' + socket.id + ') sending offer to ' + peerId);
+      console.log(socket.userData.userName + ' (' + socket.id + ') sending offer to ' + peerId);
 
       io.to(peerId).emit('offer', {
         peerId: socket.id,
@@ -72,7 +73,7 @@ module.exports = function (server) {
 
     function answer(message) {
       const {peerId, data} = message;
-      console.log(socket.userdata.username + ' (' + socket.id + ') sending answer to ' + peerId);
+      console.log(socket.userData.userName + ' (' + socket.id + ') sending answer to ' + peerId);
 
       io.to(peerId).emit('answer', {
         peerId: socket.id,
@@ -82,7 +83,7 @@ module.exports = function (server) {
 
     function candidate(message) {
       const {peerId, data} = message;
-      console.log(socket.userdata.username + ' (' + socket.id + ') sending candidate to ' + peerId);
+      console.log(socket.userData.userName + ' (' + socket.id + ') sending candidate to ' + peerId);
 
       io.to(peerId).emit('candidate', {
         peerId: socket.id,
@@ -91,24 +92,24 @@ module.exports = function (server) {
     }
 
     function streamStarted() {
-      if (socket.userdata && socket.userdata.room) {
-        console.log(socket.userdata.username + ' (' + socket.id + ') started streaming to room ' + socket.userdata.room);
+      if (socket.userData && socket.userData.room) {
+        console.log(socket.userData.userName + ' (' + socket.id + ') started streaming to room ' + socket.userData.room);
 
-        socket.userdata.streaming = true;
+        socket.userData.streaming = true;
 
-        socket.to(socket.userdata.room).emit('stream_started', {
+        socket.to(socket.userData.room).emit('stream_started', {
           peerId: socket.id,
         });
       }
     }
 
     function streamStopped() {
-      if (socket.userdata && socket.userdata.room) {
-        console.log(socket.userdata.username + ' (' + socket.id + ') stopped streaming to room ' + socket.userdata.room);
+      if (socket.userData && socket.userData.room) {
+        console.log(socket.userData.userName + ' (' + socket.id + ') stopped streaming to room ' + socket.userData.room);
 
-        socket.userdata.streaming = false;
+        socket.userData.streaming = false;
 
-        socket.to(socket.userdata.room).emit('stream_stopped', {
+        socket.to(socket.userData.room).emit('stream_stopped', {
           peerId: socket.id,
         });
       }
@@ -124,7 +125,7 @@ module.exports = function (server) {
       return socketIds.map(socketId => {
         return {
           id: socketId,
-          userdata: adapter.nsp.connected[socketId].userdata
+          userData: adapter.nsp.connected[socketId].userData
         }
       });
 

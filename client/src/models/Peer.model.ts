@@ -1,3 +1,6 @@
+import {Room} from './Room.model';
+import {BehaviorSubject} from 'rxjs';
+
 export class Peer {
 
   private static offerOptions = {
@@ -12,9 +15,29 @@ export class Peer {
 
   private _remoteStreamPeerConnection: RTCPeerConnection = null;
   private _localStreamPeerConnection: RTCPeerConnection = null;
-  private _remoteStream: MediaStream = null;
+  private _stream$: BehaviorSubject<MediaStream> = new BehaviorSubject<MediaStream>(null);
 
-  constructor(private _socket: SocketIOClient.Socket, private _remotePeerId: string) {
+  get stream$(): BehaviorSubject<MediaStream> {
+    return this._stream$;
+  }
+
+  get stream(): MediaStream {
+    return this._stream$.value;
+  }
+
+  set stream(value: MediaStream) {
+    this._stream$.next(value);
+  }
+
+  get id(): string {
+    return this._id;
+  }
+
+  get userName(): string {
+    return this._userName;
+  }
+
+  constructor(private _id: string, private _userName: string, private _room: Room) {
   }
 
   public sendOfferForRemoteStream() {
@@ -29,9 +52,9 @@ export class Peer {
       .then(description => {
         this._remoteStreamPeerConnection.setLocalDescription(description)
           .then(() => {
-            console.log('Sending a local description offer to ' + this._remotePeerId);
-            this._socket.emit('offer', {
-              peerId: this._remotePeerId,
+            console.log('Sending a local description offer to ' + this._id);
+            this._room.emit('offer', {
+              peerId: this._id,
               data: {
                 sdp: this._remoteStreamPeerConnection.localDescription
               }
@@ -60,14 +83,14 @@ export class Peer {
     const sessionDescription = new RTCSessionDescription(sdp);
     this._localStreamPeerConnection.setRemoteDescription(sessionDescription)
       .then(() => {
-        console.log('Got remote description offer from ' + this._remotePeerId + ': sending answer');
+        console.log('Got remote description offer from ' + this._id + ': sending answer');
         // Create an answer
         this._localStreamPeerConnection.createAnswer()
           .then(description => {
             this._localStreamPeerConnection.setLocalDescription(description)
               .then(() => {
-                this._socket.emit('answer', {
-                  peerId: this._remotePeerId,
+                this._room.emit('answer', {
+                  peerId: this._id,
                   data: {
                     sdp: this._localStreamPeerConnection.localDescription
                   }
@@ -86,7 +109,7 @@ export class Peer {
   }
 
   public onRemoteStreamAnswer(sdp: any) {
-    console.log('Got remote description answer from ' + this._remotePeerId);
+    console.log('Got remote description answer from ' + this._id);
     const sessionDescription = new RTCSessionDescription(sdp);
     this._remoteStreamPeerConnection.setRemoteDescription(sessionDescription)
       .catch(error => {
@@ -98,9 +121,9 @@ export class Peer {
     const { candidate } = event;
 
     if (candidate != null) {
-      console.log('Sending local iceCandidate to ' + this._remotePeerId);
-      this._socket.emit('candidate', {
-        peerId: this._remotePeerId,
+      console.log('Sending local iceCandidate to ' + this._id);
+      this._room.emit('candidate', {
+        peerId: this._id,
         data: {
           candidate: candidate
         }
@@ -111,7 +134,7 @@ export class Peer {
   public onRemoteIceCandidate(candidate: any) {
     const iceCandidate = new RTCIceCandidate(candidate);
 
-    console.log('Got a remote ice candidate from ' + this._remotePeerId);
+    console.log('Got a remote ice candidate from ' + this._id);
     this._remoteStreamPeerConnection.addIceCandidate(iceCandidate)
       .then(() => {
       })
@@ -130,9 +153,11 @@ export class Peer {
   private onRemoteStreamReceived(event: any) {
     console.log('Received a remote stream');
 
-    this._remoteStream = event.streams[0];
+    // Update stream (observable)
+    this.stream = event.streams[0];
 
-    // TODO set an observable
+    // Notify room
+    this._room.activePeer = this;
   }
 
   public onRemoteStreamStopped() {
@@ -142,8 +167,7 @@ export class Peer {
       this._remoteStreamPeerConnection = null;
     }
 
-    this._remoteStream = null;
-
-    // TODO set an observable
+    // Update stream (observable)
+    this.stream = null;
   }
 }

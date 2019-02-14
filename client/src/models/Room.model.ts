@@ -1,10 +1,34 @@
 import {Peer} from './Peer.model';
+import {BehaviorSubject} from 'rxjs';
 
 export class Room {
-  private _peers: Map<string, Peer> = new Map<string, Peer>();
-  private _localStream: MediaStream = null;
+  private _remotePeers: Array<Peer> = new Array<Peer>();
+  private _remotePeerIds$: BehaviorSubject<Array<string>> = new BehaviorSubject(new Array<string>());
+
+  private _localPeer: Peer = null;
+
+  private _activePeer$: BehaviorSubject<Peer> = new BehaviorSubject<Peer>(null);
+
+  get remotePeerIds$(): BehaviorSubject<Array<string>> {
+    return this._remotePeerIds$;
+  }
+
+  get activePeer(): Peer {
+    return this._activePeer$.value;
+  }
+
+  set activePeer(value: Peer) {
+    this._activePeer$.next(value);
+  }
+
+  get activePeer$(): BehaviorSubject<Peer> {
+    return this._activePeer$;
+  }
 
   constructor(private _socket: SocketIOClient.Socket, peerDataArrays: Array<any>, private _roomName: string, private _userName: string) {
+
+    // Create a local peer
+    this._localPeer = new Peer(this._socket.id, this._userName, this);
 
     // Set socket listeners
     this._socket.on('join', this.onPeerJoined.bind(this));
@@ -17,67 +41,85 @@ export class Room {
 
     // Store current peer
     peerDataArrays.forEach(peerData => {
-      const peer = this.getOrCreatePeer(peerData.id);
+      const peer = this.createPeer(peerData.id, peerData.userData.username);
 
       // If peer is streaming then get remote stream
-      if (peerData.userdata.streaming) {
+      if (peerData.userData.streaming) {
         peer.sendOfferForRemoteStream();
       }
     });
-
-    // TODO set an observable for the peers
   }
 
   public startStreaming(stream: MediaStream) {
-    this._localStream = stream;
+    this._localPeer.stream = stream;
+
+    // Update main stream
+    this.activePeer = this._localPeer;
 
     // Broadcast event to all other peers
     this._socket.emit('stream_started');
-
-    // TODO set an observable for local streaming started
   }
 
   public stopStreaming() {
-    this._localStream = null;
+    // Check if main stream
+    if (this.activePeer === this._localPeer) {
+      this.activePeer = null;
+    }
 
-    this._peers.forEach((peer: Peer, peerId: string) => {
+    // Update stream in local peer
+    this._localPeer.stream = null;
+
+    this._remotePeers.forEach((peer: Peer) => {
       peer.onLocalStreamStopped();
     });
 
     // Broadcast event to all other peers
     this._socket.emit('stream_stopped');
-
-    // TODO set an observable for local streaming stopped
   }
 
+  public emit(messageType: string, data: any) {
+    this._socket.emit(messageType, data);
+  }
 
   private onPeerJoined(message: any) {
-    // TODO
+    // A peer has joined the room
+    const {peerId, userName} = message;
 
-    // TODO set an observable for the peers
+    this.createPeer(peerId, userName);
   }
 
   private onPeerLeft(message: any) {
-    // TODO
+    // A peer has left the room
+    const {peerId, userName} = message;
 
-    // TODO set an observable for the peers
+    this.removePeer(peerId);
   }
 
   private onRemoteStreamStarted(message: any) {
     // Another peer has started streaming
     const {peerId} = message;
 
-    const peer = this.getOrCreatePeer(peerId);
-    peer.sendOfferForRemoteStream();
+    const peer = this.getPeer(peerId);
+    if (peer != null) {
+      peer.sendOfferForRemoteStream();
+
+    } else {
+      console.error('Got an offer from an unknown peer');
+    }
   }
 
   private onRemoteStreamStopped(message: any) {
     // A peer has stopped streaming
     const {peerId} = message;
 
-    const peer = this._peers.get(peerId);
+    const peer = this.getPeer(peerId);
     if (peer != null) {
       peer.onRemoteStreamStopped();
+
+      // Stop active stream
+      if (this.activePeer === peer) {
+        this.activePeer = null;
+      }
     }
   }
 
@@ -86,10 +128,15 @@ export class Room {
     const {peerId, data} = message;
     const sdp = data.sdp;
 
-    const peer = this.getOrCreatePeer(peerId);
-    peer.sendAnswerForLocalStream(sdp, this._localStream);
+    const peer = this.getPeer(peerId);
+    if (peer != null) {
+      peer.sendAnswerForLocalStream(sdp, this._localPeer.stream);
 
-    // TODO refuse if no local stream
+      // TODO refuse if no local stream
+
+    } else {
+      console.error('Got an offer from an unknown peer');
+    }
   }
 
   private onAnswer(message: any) {
@@ -97,7 +144,7 @@ export class Room {
     const {peerId, data} = message;
     const sdp = data.sdp;
 
-    const peer = this._peers.get(peerId);
+    const peer = this.getPeer(peerId);
     if (peer != null) {
       peer.onRemoteStreamAnswer(sdp);
     }
@@ -108,21 +155,46 @@ export class Room {
     const {peerId, data} = message;
     const candidate = data.candidate;
 
-    const peer = this._peers.get(peerId);
+    const peer = this.getPeer(peerId);
     if (peer != null) {
       peer.onRemoteIceCandidate(candidate);
     }
   }
 
-  private getOrCreatePeer(remotePeerId: string): Peer {
-    let peer: Peer = this._peers.get(remotePeerId);
-    if (this._peers.get(remotePeerId) != null) {
+  private getPeer(remotePeerId: string): Peer {
+    return this._remotePeers.find(peer => peer.id === remotePeerId);
+  }
+
+  private createPeer(remotePeerId: string, userName: string): Peer {
+    // Verify it doesn't already exist
+    let peer: Peer = this.getPeer(remotePeerId);
+    if (peer != null) {
       return peer;
     }
 
-    peer = new Peer(this._socket, remotePeerId);
-    this._peers.set(remotePeerId, peer);
+    peer = new Peer(remotePeerId, userName, this);
+    this._remotePeers.push(peer);
+
+    // Notify change to room participants
+    this._remotePeerIds$.next(this._remotePeers.map(peer => peer.id));
 
     return peer;
+  }
+
+  private removePeer(remotePeerId: string) {
+    // Get peer associated with the Id
+    const peer = this.getPeer(remotePeerId);
+    if (peer != null) {
+      // Remove active peer
+      if (this.activePeer === peer) {
+        this.activePeer = null;
+      }
+
+      // Remove peer from array
+      this._remotePeers = this._remotePeers.filter(remotePeer => remotePeer.id !== remotePeerId);
+
+      // Notify change to room participants
+      this._remotePeerIds$.next(this._remotePeers.map(peer => peer.id));
+    }
   }
 }
