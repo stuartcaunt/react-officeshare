@@ -3,7 +3,6 @@ import {ToastContainer, toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import {Chat, Header, Information, Participants, Screen, Toolbar} from '.';
-import {RoomService} from '../services';
 import {Peer, Room} from '../models';
 import {RouteComponentProps} from 'react-router-dom';
 

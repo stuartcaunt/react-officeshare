@@ -8,7 +8,7 @@ export class RoomService {
 
       // Connect to server
       const socket = socketIoClient.connect(`https://${window.location.hostname}:8443`, {
-        reconnection: false
+        // reconnection: false
       });
 
       socket.on('connect', () => {
