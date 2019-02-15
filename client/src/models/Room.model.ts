@@ -3,14 +3,20 @@ import {BehaviorSubject} from 'rxjs';
 
 export class Room {
   private _remotePeers: Array<Peer> = new Array<Peer>();
-  private _remotePeers$: BehaviorSubject<Array<Peer>> = new BehaviorSubject(new Array<Peer>());
+
+  private _peers: Array<Peer> = new Array<Peer>();
+  private _peers$: BehaviorSubject<Array<Peer>> = new BehaviorSubject(new Array<Peer>());
 
   private _localPeer: Peer = null;
 
   private _activePeer$: BehaviorSubject<Peer> = new BehaviorSubject<Peer>(null);
 
-  get remotePeers$(): BehaviorSubject<Array<Peer>> {
-    return this._remotePeers$;
+  get peers(): Array<Peer> {
+    return this._peers;
+  }
+
+  get peers$(): BehaviorSubject<Array<Peer>> {
+    return this._peers$;
   }
 
   get activePeer(): Peer {
@@ -29,6 +35,7 @@ export class Room {
 
     // Create a local peer
     this._localPeer = new Peer(this._socket.id, this._userName, this);
+    this.createPeerList();
 
     // Set socket listeners
     this._socket.on('join', this.onPeerJoined.bind(this));
@@ -41,7 +48,7 @@ export class Room {
 
     // Store current peer
     peerDataArrays.forEach(peerData => {
-      const peer = this.createPeer(peerData.id, peerData.userData.username);
+      const peer = this.createPeer(peerData.id, peerData.userData.userName);
 
       // If peer is streaming then get remote stream
       if (peerData.userData.streaming) {
@@ -182,7 +189,7 @@ export class Room {
     this._remotePeers.push(peer);
 
     // Notify change to room participants
-    this._remotePeers$.next(this._remotePeers.map(peer => peer));
+    this.createPeerList();
 
     return peer;
   }
@@ -200,7 +207,12 @@ export class Room {
       this._remotePeers = this._remotePeers.filter(remotePeer => remotePeer.id !== remotePeerId);
 
       // Notify change to room participants
-      this._remotePeers$.next(this._remotePeers.map(peer => peer));
+      this.createPeerList();
     }
+  }
+
+  private createPeerList() {
+    this._peers = [this._localPeer].concat(this._remotePeers.map(peer => peer));
+    this._peers$.next(this._peers);
   }
 }

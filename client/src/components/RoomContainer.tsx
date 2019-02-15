@@ -27,7 +27,29 @@ class RoomContainer extends Component<IProps, { room: Room }> {
     const {id} = this.props.match.params;
     const roomService = new RoomService();
 
-    roomService.connect(id, 'test')
+    const names =
+    ['Raelene Mattice',
+    'Kirk Kirschner',
+    'Rosaura Borquez',
+    'Livia Clowers',
+    'Rocky Goding',
+    'Yu Yamamoto',
+    'Antonietta Brossard',
+    'Kip Harsch',
+    'Priscilla Covert',
+    'Jone Tansey',
+    'Felicia Allington',
+    'Morton Brumsey',
+    'Ethan Reidy',
+    'Marhta Demeritt',
+    'Tracie Stine',
+    'Agustin Oxley',
+    'Pattie Benn',
+    'Kalyn Zack',
+    'Fidelia Rady',
+    'Tatum Almaguer'];
+
+    roomService.connect(id, names[Math.floor(Math.random() * names.length)])
       .then(room => {
         this.setState({room})
       })
