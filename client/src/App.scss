@@ -34,7 +34,7 @@ body {
       justify-content: center;
       align-items: center;
       background-color: #272a31;
-      img {
+      img, video {
         max-width: 100%;
         background: white;
         display: block
@@ -64,11 +64,7 @@ body {
         width: 190px;
         height: 113px;
         margin-bottom: 5px;
-        img {
-          width: 190px;
-          height: 113px;
-        }
-        video {
+        img, video {
           width: 190px;
           height: 113px;
         }

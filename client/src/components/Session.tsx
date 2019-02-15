@@ -57,7 +57,7 @@ export class Session extends Component<{room: Room}, { isChatHidden: boolean, pa
           <Participants participants={this.state.participants}/>
           <div className="viewer">
             <Screen presenter={this.state.presenter}/>
-            <Toolbar/>
+            <Toolbar room={this.props.room}/>
             <Information/>
           </div>
           {this.state.isChatHidden == true &&
