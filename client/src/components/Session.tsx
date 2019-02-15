@@ -10,15 +10,14 @@ import {RouteComponentProps} from 'react-router-dom';
 interface IProps extends RouteComponentProps<{ id: string }> {
 }
 
-export class Session extends Component<{room: Room}, { isChatHidden: boolean, participants: Array<Peer> }> {
-
-  private _participants: Participants = null;
+export class Session extends Component<{room: Room}, { isChatHidden: boolean, participants: Array<Peer>, presenter: Peer }> {
 
   constructor(props: { room: Room }) {
     super(props);
     this.state = {
       isChatHidden: false,
-      participants: props.room.peers
+      participants: props.room.peers,
+      presenter: props.room.activePeer
     };
     this.handleChatToggle = this.handleChatToggle.bind(this);
   }
@@ -30,6 +29,12 @@ export class Session extends Component<{room: Room}, { isChatHidden: boolean, pa
       this.setState({
         participants: peers
       });
+    });
+
+    this.props.room.activePeer$.subscribe(peer => {
+      this.setState({
+        presenter: peer
+      })
     });
   }
 
@@ -49,9 +54,9 @@ export class Session extends Component<{room: Room}, { isChatHidden: boolean, pa
         <ToastContainer/>
         <Header participants={20} title={"My room 1"} toggleChat={this.handleChatToggle}/>
         <div className="content">
-          <Participants participants={this.state.participants} ref={(ref) => this._participants = ref}/>
+          <Participants participants={this.state.participants}/>
           <div className="viewer">
-            <Screen/>
+            <Screen presenter={this.state.presenter}/>
             <Toolbar/>
             <Information/>
           </div>
