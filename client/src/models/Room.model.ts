@@ -31,6 +31,10 @@ export class Room {
     return this._activePeer$;
   }
 
+  get localPeer(): Peer {
+    return this._localPeer;
+  }
+
   constructor(private _socket: SocketIOClient.Socket, peerDataArrays: Array<any>, private _roomName: string, private _userName: string) {
 
     // Create a local peer
@@ -74,6 +78,9 @@ export class Room {
     }
 
     // Update stream in local peer
+    if (this._localPeer.stream != null) {
+      this._localPeer.stream.getTracks()[0].stop();
+    }
     this._localPeer.stream = null;
 
     this._remotePeers.forEach((peer: Peer) => {

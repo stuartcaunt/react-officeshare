@@ -11,6 +11,14 @@ export class Participant extends Component<{ peer: Peer}, { stream: MediaStream 
     }
   }
 
+  public componentDidMount() {
+    this.props.peer.stream$.subscribe(stream => {
+      this.setState({
+        stream: stream
+      });
+    });
+  }
+
   render() {
     const {peer} = this.props;
     return <div className="participant">
