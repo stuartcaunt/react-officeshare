@@ -5,11 +5,14 @@ import 'react-toastify/dist/ReactToastify.css';
 import {Chat, Header, Information, Participants, Screen, Toolbar} from '.';
 import {Peer, Room} from '../models';
 import {RouteComponentProps} from 'react-router-dom';
+import {ApplicationContext, ApplicationContextConsumer} from '../context';
 
 interface IProps extends RouteComponentProps<{ id: string }> {
 }
 
 export class Session extends Component<{room: Room}, { isChatHidden: boolean, participants: Array<Peer>, presenter: Peer }> {
+
+  private _context: ApplicationContext;
 
   constructor(props: { room: Room }) {
     super(props);
@@ -23,17 +26,21 @@ export class Session extends Component<{room: Room}, { isChatHidden: boolean, pa
 
 
   public componentDidMount() {
+    this._context.actions.room = this.props.room;
+    this._context.state.localPeer = this.props.room.localPeer;
 
     this.props.room.peers$.subscribe(peers => {
       this.setState({
         participants: peers
       });
+      this._context.state.participants = peers;
     });
 
     this.props.room.activePeer$.subscribe(peer => {
       this.setState({
         presenter: peer
-      })
+      });
+      this._context.state.presenter = peer;
     });
   }
 
@@ -49,21 +56,28 @@ export class Session extends Component<{room: Room}, { isChatHidden: boolean, pa
 
   render() {
     return (
-      <div className="container">
-        <ToastContainer/>
-        <Header participants={20} title={"My room 1"} toggleChat={this.handleChatToggle}/>
-        <div className="content">
-          <Participants participants={this.state.participants}/>
-          <div className="viewer">
-            <Screen presenter={this.state.presenter}/>
-            <Toolbar room={this.props.room}/>
-            <Information/>
-          </div>
-          {this.state.isChatHidden == true &&
-          <Chat/>
-          }
-        </div>
-      </div>
+      <ApplicationContextConsumer>
+        {context => {
+          this._context = context;
+          return (
+            <div className="container">
+              <ToastContainer/>
+              <Header participants={20} title={"My room 1"} toggleChat={this.handleChatToggle}/>
+              <div className="content">
+                <Participants participants={this.state.participants}/>
+                <div className="viewer">
+                  <Screen presenter={this.state.presenter}/>
+                  <Toolbar/>
+                  <Information/>
+                </div>
+                {this.state.isChatHidden == true &&
+                <Chat/>
+                }
+              </div>
+            </div>
+          )
+        }}
+      </ApplicationContextConsumer>
     );
   }
 }

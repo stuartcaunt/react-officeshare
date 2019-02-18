@@ -1,24 +1,24 @@
-import React, {Component} from 'react';
-import {Room} from '../models';
+import React, {Component, Context} from 'react';
+import {ApplicationContext, ApplicationContextConsumer, ApplicationState} from '../context';
 
-export class Toolbar extends Component<{room: Room}, {}> {
+export class Toolbar extends Component<{}, {}> {
 
-  constructor(props: { room: Room }) {
+  constructor(props: {}) {
     super(props);
   }
 
-  private handleAction(action: string) {
+  private handleAction(context: ApplicationContext, action: string) {
     console.log('Clicked action', action);
     if (action === 'share'){
-      if (this.props.room.localPeer.stream == null) {
+      if (context.state.localPeer.stream == null) {
         const mediaDevices: any = navigator.mediaDevices;
         mediaDevices.getDisplayMedia({ video: true })
           .then((stream: MediaStream) => {
-            this.props.room.startStreaming(stream);
+            context.actions.startStreaming(stream);
 
             stream.oninactive = () => {
-              if (this.props.room.localPeer.stream != null) {
-                this.props.room.stopStreaming();
+              if (context.state.localPeer.stream != null) {
+                context.actions.stopStreaming();
               }
             }
           })
@@ -27,7 +27,7 @@ export class Toolbar extends Component<{room: Room}, {}> {
           });
 
       } else {
-        this.props.room.stopStreaming();
+        context.actions.stopStreaming();
       }
     }
   }
@@ -37,11 +37,11 @@ export class Toolbar extends Component<{room: Room}, {}> {
    * @param icon the icon to use for this action
    * @param action the name of the action
    */
-  renderAction(icon: string, action: string) {
+  renderAction(context: ApplicationContext, icon: string, action: string) {
     return <li className="action-item" role="presentation">
       <a className={`action-label icon actions ${icon}`}
          role="button"
-         onClick={() => this.handleAction(action)}/>
+         onClick={() => this.handleAction(context, action)}/>
     </li>;
   }
 
@@ -49,11 +49,17 @@ export class Toolbar extends Component<{room: Room}, {}> {
     return <div className="toolbar">
       <div className="action-bar">
         <ul className="actions-container" role="toolbar">
-          {this.renderAction('full-screen', 'full-screen')}
-          {this.renderAction('microphone', 'microphone')}
-          {this.renderAction('share', 'share')}
-          {this.renderAction('leave', 'leave')}
-          {this.renderAction('settings', 'settings')}
+          <ApplicationContextConsumer>
+            {context => (
+              <div>
+                {this.renderAction(context, 'full-screen', 'full-screen')}
+                {this.renderAction(context, 'microphone', 'microphone')}
+                {this.renderAction(context, 'share', 'share')}
+                {this.renderAction(context, 'leave', 'leave')}
+                {this.renderAction(context, 'settings', 'settings')}
+              </div>
+            )}
+          </ApplicationContextConsumer>
         </ul>
       </div>
     </div>
