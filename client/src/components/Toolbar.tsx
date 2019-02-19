@@ -11,11 +11,12 @@ export class Toolbar extends Component<{actionHandler: (action: string) => void}
    * @param icon the icon to use for this action
    * @param action the name of the action
    */
-  renderAction(icon: string, action: string) {
-    return <li className="action-item" role="presentation">
+  renderAction(icon: string, action: string, label: string) {
+    return <li className="action-item" role="presentation" onClick={() => this.props.actionHandler(action)}>
       <a className={`action-label icon actions ${icon}`}
          role="button"
-         onClick={() => this.props.actionHandler(action)}/>
+         />
+      <div className="action-description">{label}</div>
     </li>;
   }
 
@@ -23,13 +24,10 @@ export class Toolbar extends Component<{actionHandler: (action: string) => void}
     return <div className="toolbar">
       <div className="action-bar">
         <ul className="actions-container" role="toolbar">
-          <div>
-            {this.renderAction('full-screen', 'full-screen')}
-            {this.renderAction('microphone', 'microphone')}
-            {this.renderAction('share', 'share')}
-            {this.renderAction('leave', 'leave')}
-            {this.renderAction('settings', 'settings')}
-          </div>
+            {this.renderAction('full-screen', 'full-screen', 'Full screen')}
+            {this.renderAction('microphone', 'microphone', 'Turn mic on')}
+            {this.renderAction('share', 'share', 'Share my screen')}
+            {this.renderAction('leave', 'leave', 'Leave room')}
         </ul>
       </div>
     </div>

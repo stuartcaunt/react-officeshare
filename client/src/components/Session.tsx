@@ -78,14 +78,14 @@ class Session extends Component<{room: Room, applicationState: ApplicationState}
   render() {
     return (
       <div className="container">
-        <ToastContainer/>
+        {/*<ToastContainer/>*/}
         <Header participants={20} title={"My room 1"} toggleChat={this.handleChatToggle}/>
         <div className="content">
           <Participants participants={this.state.participants}/>
           <div className="viewer">
             <Screen presenter={this.state.presenter}/>
             <Toolbar actionHandler={this.handleToolbarAction.bind(this)}/>
-            <Information/>
+            {/*<Information/>*/}
           </div>
           {this.state.isChatHidden == true &&
           <Chat/>

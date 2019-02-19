@@ -28,26 +28,26 @@ class RoomContainer extends Component<IProps, { room: Room }> {
     const roomService = new RoomService();
 
     const names =
-    ['Raelene Mattice',
-    'Kirk Kirschner',
-    'Rosaura Borquez',
-    'Livia Clowers',
-    'Rocky Goding',
-    'Yu Yamamoto',
-    'Antonietta Brossard',
-    'Kip Harsch',
-    'Priscilla Covert',
-    'Jone Tansey',
-    'Felicia Allington',
-    'Morton Brumsey',
-    'Ethan Reidy',
-    'Marhta Demeritt',
-    'Tracie Stine',
-    'Agustin Oxley',
-    'Pattie Benn',
-    'Kalyn Zack',
-    'Fidelia Rady',
-    'Tatum Almaguer'];
+      ['Raelene Mattice',
+        'Kirk Kirschner',
+        'Rosaura Borquez',
+        'Livia Clowers',
+        'Rocky Goding',
+        'Yu Yamamoto',
+        'Antonietta Brossard',
+        'Kip Harsch',
+        'Priscilla Covert',
+        'Jone Tansey',
+        'Felicia Allington',
+        'Morton Brumsey',
+        'Ethan Reidy',
+        'Marhta Demeritt',
+        'Tracie Stine',
+        'Agustin Oxley',
+        'Pattie Benn',
+        'Kalyn Zack',
+        'Fidelia Rady',
+        'Tatum Almaguer'];
 
     roomService.connect(id, names[Math.floor(Math.random() * names.length)])
       .then(room => {
@@ -63,9 +63,30 @@ class RoomContainer extends Component<IProps, { room: Room }> {
     if (this.state.room) {
       return (<Session room={this.state.room}/>);
     }
-    return (<button onClick={this.handleJoin.bind(this)}>Join</button>);
+    return (<div className="room-join-wrapper">
+              <div className="room-join-container">
+                <div className="room-join-container-intro">
+                  <img src={"/images/logo.svg"} />
+                  <h2>
+                    Welcome to officeshare</h2>
+                </div>
+                <div className="room-join-container-box">
+                  <p className="room-join-container-box__help">
+                    Before joining the room, please tell your us your name.
+                  </p>
+                  <div className="room-join-container-box__username">
+                    <input type="text" value="Jamie (ILL)" />
+                  </div>
+                  <div>
+                    <button onClick={this.handleJoin.bind(this)} className="room-join-container-box__join" type="submit">
+                      Join room
+                    </button>
+                  </div>
+                </div>
+              </div>
+          </div>);
   }
-}
+  }
 
 
-export default RoomContainer;
+  export default RoomContainer;
