@@ -1,11 +1,10 @@
 import React, {Component} from 'react';
-import {BrowserRouter as Router, Route, Link} from "react-router-dom";
+import {BrowserRouter as Router, Route} from "react-router-dom";
 
 import './App.scss';
 import RoomContainer from "./components/RoomContainer";
 import {HomeContainer} from "./components";
-import {ApplicationContextProvider, INITIAL_APPLICATION_CONTEXT} from './context';
-import {ApplicationState} from './context/Application.state';
+import {ApplicationContext, INITIAL_APPLICATION_STATE} from './context';
 
 class App extends Component<{}, {}> {
 
@@ -15,14 +14,14 @@ class App extends Component<{}, {}> {
 
   render() {
     return (
-      <ApplicationContextProvider value={INITIAL_APPLICATION_CONTEXT}>
+      <ApplicationContext.Provider value={INITIAL_APPLICATION_STATE}>
         <Router>
           <div>
             <Route exact path="/" component={HomeContainer}/>
             <Route exact path="/:id" component={RoomContainer}/>
           </div>
         </Router>
-      </ApplicationContextProvider>
+      </ApplicationContext.Provider>
     );
   }
 

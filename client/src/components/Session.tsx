@@ -1,46 +1,40 @@
 import React, {Component} from 'react';
-import {ToastContainer, toast} from 'react-toastify';
+import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import {Chat, Header, Information, Participants, Screen, Toolbar} from '.';
 import {Peer, Room} from '../models';
-import {RouteComponentProps} from 'react-router-dom';
-import {ApplicationContext, ApplicationContextConsumer} from '../context';
+import {ApplicationState, withApplicationContext} from '../context';
 
-interface IProps extends RouteComponentProps<{ id: string }> {
-}
+class Session extends Component<{room: Room, applicationState: ApplicationState}, { isChatHidden: boolean, participants: Array<Peer>, presenter: Peer }> {
 
-export class Session extends Component<{room: Room}, { isChatHidden: boolean, participants: Array<Peer>, presenter: Peer }> {
-
-  private _context: ApplicationContext;
-
-  constructor(props: { room: Room }) {
+  constructor(props: { room: Room, applicationState: ApplicationState }) {
     super(props);
     this.state = {
       isChatHidden: false,
       participants: props.room.peers,
       presenter: props.room.activePeer
     };
+
     this.handleChatToggle = this.handleChatToggle.bind(this);
   }
 
 
   public componentDidMount() {
-    this._context.actions.room = this.props.room;
-    this._context.state.localPeer = this.props.room.localPeer;
+    this.props.applicationState.localPeer = this.props.room.localPeer;
 
     this.props.room.peers$.subscribe(peers => {
       this.setState({
         participants: peers
       });
-      this._context.state.participants = peers;
+      this.props.applicationState.participants = peers;
     });
 
     this.props.room.activePeer$.subscribe(peer => {
       this.setState({
         presenter: peer
       });
-      this._context.state.presenter = peer;
+      this.props.applicationState.presenter = peer;
     });
   }
 
@@ -54,30 +48,52 @@ export class Session extends Component<{room: Room}, { isChatHidden: boolean, pa
     }));
   }
 
+  handleToolbarAction(action: string) {
+    const room = this.props.room;
+
+    console.log('Clicked action', action);
+    if (action === 'share'){
+      if (room.localPeer.stream == null) {
+        const mediaDevices: any = navigator.mediaDevices;
+        mediaDevices.getDisplayMedia({ video: true })
+          .then((stream: MediaStream) => {
+            room.startStreaming(stream);
+
+            stream.oninactive = () => {
+              if (room.localPeer.stream != null) {
+                room.stopStreaming();
+              }
+            }
+          })
+          .catch((error: Error) => {
+            console.log('error streaming ', error);
+          });
+
+      } else {
+        room.stopStreaming();
+      }
+    }
+  }
+
   render() {
     return (
-      <ApplicationContextConsumer>
-        {context => {
-          this._context = context;
-          return (
-            <div className="container">
-              <ToastContainer/>
-              <Header participants={20} title={"My room 1"} toggleChat={this.handleChatToggle}/>
-              <div className="content">
-                <Participants participants={this.state.participants}/>
-                <div className="viewer">
-                  <Screen presenter={this.state.presenter}/>
-                  <Toolbar/>
-                  <Information/>
-                </div>
-                {this.state.isChatHidden == true &&
-                <Chat/>
-                }
-              </div>
-            </div>
-          )
-        }}
-      </ApplicationContextConsumer>
+      <div className="container">
+        <ToastContainer/>
+        <Header participants={20} title={"My room 1"} toggleChat={this.handleChatToggle}/>
+        <div className="content">
+          <Participants participants={this.state.participants}/>
+          <div className="viewer">
+            <Screen presenter={this.state.presenter}/>
+            <Toolbar actionHandler={this.handleToolbarAction.bind(this)}/>
+            <Information/>
+          </div>
+          {this.state.isChatHidden == true &&
+          <Chat/>
+          }
+        </div>
+      </div>
     );
   }
 }
+
+export default withApplicationContext(Session);

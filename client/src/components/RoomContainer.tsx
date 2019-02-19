@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 
-import {Session} from '.';
+import Session from './Session';
 import {RoomService} from '../services';
 import {Room} from '../models';
 import {RouteComponentProps} from 'react-router-dom';

@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {Participant} from "./Participant";
 import {Peer} from '../models';
-import {BehaviorSubject} from 'rxjs';
 
 export class Participants extends Component<{ participants: Array<Peer> }, {}> {
 
