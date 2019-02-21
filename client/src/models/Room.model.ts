@@ -2,10 +2,10 @@ import {Peer} from './Peer.model';
 import {BehaviorSubject} from 'rxjs';
 
 export class Room {
-  private _remotePeers: Array<Peer> = new Array<Peer>();
+  private _remotePeers: Array<Peer> = [];
 
-  private _peers: Array<Peer> = new Array<Peer>();
-  private _peers$: BehaviorSubject<Array<Peer>> = new BehaviorSubject(new Array<Peer>());
+  private _peers: Array<Peer> = [];
+  private _peers$: BehaviorSubject<Array<Peer>> = new BehaviorSubject([]);
 
   private _localPeer: Peer = null;
 
@@ -122,7 +122,6 @@ export class Room {
     const peer = this.getPeer(peerId);
     if (peer != null) {
       peer.sendOfferForRemoteStream();
-
     } else {
       console.error('Got an offer from an unknown peer');
     }

@@ -2,9 +2,9 @@ import React, {Component} from 'react';
 import {Peer} from '../models';
 import {Video} from './Video';
 
-export class Participant extends Component<{ peer: Peer}, { stream: MediaStream }> {
+export class Participant extends Component<{ peer: Peer }, { stream: MediaStream }> {
 
-  constructor(props: any) {
+  constructor(props: { peer: Peer }) {
     super(props);
     this.state = {
       stream: null
@@ -12,7 +12,8 @@ export class Participant extends Component<{ peer: Peer}, { stream: MediaStream 
   }
 
   public componentDidMount() {
-    this.props.peer.stream$.subscribe(stream => {
+    const {peer} = this.props;
+    peer.stream$.subscribe(stream => {
       this.setState({
         stream: stream
       });
@@ -21,9 +22,10 @@ export class Participant extends Component<{ peer: Peer}, { stream: MediaStream 
 
   render() {
     const {peer} = this.props;
-    return <div className="participant">
-      {(this.state.stream == null) && <img src="/images/thumbnails/screen_ubuntu.png"/>}
-      {(this.state.stream != null) && <Video stream={this.state.stream}/>}
+    const {stream} = this.state;
+    return (<div className="participant">
+      {(stream == null) && <img src="/images/thumbnails/screen_ubuntu.png"/>}
+      {(stream != null) && <Video stream={this.state.stream}/>}
       <div className="participant__user">
         <span className="participant__user__content">
           <span className="participant__user__username">{peer.userName}</span>
@@ -33,7 +35,7 @@ export class Participant extends Component<{ peer: Peer}, { stream: MediaStream 
           </span>
         </span>
       </div>
-    </div>
+    </div>);
   }
 
 }

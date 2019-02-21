@@ -19,7 +19,7 @@ export class Video extends Component<{ stream: MediaStream }, {}> {
   }
 
   render() {
-    return <video autoPlay ref={(ref) => this._videoElement = ref}></video>
+    return (<video autoPlay ref={(ref) => this._videoElement = ref}/>);
   }
 
 }

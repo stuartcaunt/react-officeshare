@@ -5,6 +5,8 @@ import './App.scss';
 import RoomContainer from "./components/RoomContainer";
 import {HomeContainer} from "./components";
 import {ApplicationContext, INITIAL_APPLICATION_STATE} from './context';
+import {ToastContainer} from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 class App extends Component<{}, {}> {
 
@@ -15,6 +17,7 @@ class App extends Component<{}, {}> {
   render() {
     return (
       <ApplicationContext.Provider value={INITIAL_APPLICATION_STATE}>
+        <ToastContainer/>
         <Router>
           <div>
             <Route exact path="/" component={HomeContainer}/>

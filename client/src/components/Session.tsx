@@ -1,16 +1,16 @@
 import React, {Component} from 'react';
-import {ToastContainer} from 'react-toastify';
+import {toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-import {Chat, Header, Information, Participants, Screen, Toolbar} from '.';
+import {Chat, Header, Participants, Screen, Toolbar} from '.';
 import {Peer, Room} from '../models';
 import {ApplicationState, withApplicationContext} from '../context';
 
-class Session extends Component<{room: Room, applicationState: ApplicationState}, { isChatHidden: boolean, participants: Array<Peer>, presenter: Peer }> {
+class Session extends Component<{ room: Room, applicationState: ApplicationState }, { isChatHidden: boolean, participants: Array<Peer>, presenter: Peer, isFullScreen: boolean }> {
 
   constructor(props: { room: Room, applicationState: ApplicationState }) {
     super(props);
     this.state = {
+      isFullScreen: false,
       isChatHidden: false,
       participants: props.room.peers,
       presenter: props.room.activePeer
@@ -19,25 +19,23 @@ class Session extends Component<{room: Room, applicationState: ApplicationState}
     this.handleChatToggle = this.handleChatToggle.bind(this);
   }
 
-
   public componentDidMount() {
-    this.props.applicationState.localPeer = this.props.room.localPeer;
-
-    this.props.room.peers$.subscribe(peers => {
+    const {room, applicationState} = this.props;
+    applicationState.localPeer = room.localPeer;
+    room.peers$.subscribe(peers => {
       this.setState({
         participants: peers
       });
-      this.props.applicationState.participants = peers;
+      applicationState.participants = peers;
     });
 
-    this.props.room.activePeer$.subscribe(peer => {
+    room.activePeer$.subscribe(peer => {
       this.setState({
         presenter: peer
       });
-      this.props.applicationState.presenter = peer;
+      applicationState.presenter = peer;
     });
   }
-
 
   /**
    * Toggle showing and hiding chat
@@ -48,48 +46,70 @@ class Session extends Component<{room: Room, applicationState: ApplicationState}
     }));
   }
 
+  /**
+   * Check if the browser supports screen sharing natively
+   */
+  private isBrowserSupported() {
+    const mediaDevices: any = navigator.mediaDevices;
+    return typeof mediaDevices.getDisplayMedia === 'function';
+  }
+
   handleToolbarAction(action: string) {
     const room = this.props.room;
-
-    console.log('Clicked action', action);
-    if (action === 'share'){
+    if (action === 'full-screen') {
+      console.log('Entering full screen');
+      this.setState({isFullScreen: true});
+    }
+    if (action === 'share') {
       if (room.localPeer.stream == null) {
         const mediaDevices: any = navigator.mediaDevices;
-        mediaDevices.getDisplayMedia({ video: true })
-          .then((stream: MediaStream) => {
-            room.startStreaming(stream);
-
-            stream.oninactive = () => {
-              if (room.localPeer.stream != null) {
-                room.stopStreaming();
+        const constraints = {video: true};
+        if (this.isBrowserSupported()) {
+          mediaDevices.getDisplayMedia(constraints)
+            .then((stream: MediaStream) => {
+              room.startStreaming(stream);
+              toast.success('You are now sharing your screen');
+              stream.oninactive = () => {
+                if (room.localPeer.stream != null) {
+                  toast.success('You have stopped sharing your screen');
+                  room.stopStreaming();
+                }
               }
-            }
-          })
-          .catch((error: Error) => {
-            console.log('error streaming ', error);
-          });
-
+            })
+            .catch((error: Error) => {
+              toast.error('You have decided not to share your screen.');
+              console.log('error streaming ', error);
+            });
+        } else {
+          toast.error("Your browser is not supported. Please upgrade to the latest version of Firefox or Chrome.")
+        }
       } else {
         room.stopStreaming();
       }
     }
   }
 
+  renderChat() {
+    const {isChatHidden} = this.state;
+    if (isChatHidden) {
+      return (<Chat/>);
+    }
+    return null;
+  }
+
+
   render() {
     return (
       <div className="container">
-        {/*<ToastContainer/>*/}
-        <Header participants={20} title={"My room 1"} toggleChat={this.handleChatToggle}/>
+        <Header link={"http://officeshare.com/123"} title={"My room 1"} toggleChat={this.handleChatToggle}/>
         <div className="content">
           <Participants participants={this.state.participants}/>
           <div className="viewer">
-            <Screen presenter={this.state.presenter}/>
+            <Screen fullScreen={this.state.isFullScreen} presenter={this.state.presenter}/>
             <Toolbar actionHandler={this.handleToolbarAction.bind(this)}/>
             {/*<Information/>*/}
           </div>
-          {this.state.isChatHidden == true &&
-          <Chat/>
-          }
+          {this.renderChat()}
         </div>
       </div>
     );

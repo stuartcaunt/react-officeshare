@@ -6,7 +6,6 @@ export class Participants extends Component<{ participants: Array<Peer> }, {}> {
 
   constructor(props: { participants: Array<Peer> }) {
     super(props);
-
   }
 
   /**

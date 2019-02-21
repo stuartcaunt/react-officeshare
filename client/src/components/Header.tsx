@@ -1,14 +1,24 @@
-import React, {Component} from 'react';
+import React, {Component, Fragment} from 'react';
+import CopyToClipboard from 'react-copy-to-clipboard';
+import {toast} from "react-toastify";
 
-export class Header extends Component<{ participants: number, title: string, toggleChat: () => void }, {}> {
+export class Header extends Component<{ title: string, link: string, toggleChat: () => void }, {}> {
+
+  renderLink() {
+    const {link} = this.props;
+    return (<Fragment>
+      <span>{link}</span>
+      <CopyToClipboard text={link} onCopy={() => toast.success('Copied to clipboard')}>
+        <button className="copy-link">Copy link</button>
+      </CopyToClipboard>
+    </Fragment>);
+  }
 
   render() {
-    const {title, participants} = this.props;
+    const {title} = this.props;
     return <div className="header">
       <div className="left">
-        <span>https://jamie.me/jfd4lksl</span>
-        <button className="copy-link">Copy link</button>
-        {/*<i className="fas fa-users"/><span>{participants} participants</span>*/}
+        {this.renderLink()}
       </div>
       <div className="center">{title}</div>
       <div className="right">
