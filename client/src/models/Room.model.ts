@@ -35,6 +35,10 @@ export class Room {
     return this._localPeer;
   }
 
+  get name(): string {
+    return this._roomName;
+  }
+
   constructor(private _socket: SocketIOClient.Socket, peerDataArrays: Array<any>, private _roomName: string, private _userName: string) {
 
     // Create a local peer

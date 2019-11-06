@@ -1,44 +1,26 @@
 import React, {Component} from 'react';
+import { ToolbarAction } from '../models';
 
-export class Toolbar extends Component<{ actionHandler: (action: string) => void }, {}> {
+export class Toolbar extends Component<{ actions: ToolbarAction[] }, {}> {
 
-  /**
-   * A list of actions for the toolbar
-   */
-  private _actions = [
-    {
-      id: 'full-screen',
-      icon: 'full-screen',
-      label: 'Full screen',
-    }, {
-      id: 'share',
-      icon: 'share',
-      label: 'Share my screen'
-    },
-    {
-      id: 'leave',
-      icon: 'leave',
-      label: 'Leave room'
-    }
-  ];
-
-  constructor(props: { actionHandler: (action: string) => void }) {
+  constructor(props: { actions: ToolbarAction[] }) {
     super(props);
   }
 
   renderActions() {
-    return this._actions.map(action => this.renderAction(action));
+    return this.props.actions
+      .filter(action => action.visible)
+      .map(action => this.renderAction(action));
   }
 
   /**
    * Render an action
    * @param action the action to render
    */
-  renderAction(action: { id: string, icon: string, label: string }) {
-    const {icon, id, label} = action;
-    return <li className="action-item" role="presentation" key={id} onClick={() => this.props.actionHandler(id)}>
-      <a className={`action-label icon actions ${icon}`} role="button"/>
-      <span className="action-description">{label}</span>
+  renderAction(action: ToolbarAction) {
+    return <li className={`action-item  ${action.enabled ? '' : 'action-disabled'}`} role="presentation" key={action.id} onClick={() => action.handler()}>
+      <a className={`action-label icon actions ${action.icon} `} role="button"/>
+      <span className="action-description">{action.label}</span>
     </li>;
   }
 
