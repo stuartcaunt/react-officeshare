@@ -3,11 +3,10 @@ import {Peer} from '../models';
 import {Video} from './Video';
 import Fullscreen from "react-full-screen";
 
-export class Screen extends Component<{ presenter: Peer, fullScreen: boolean }, {}> {
+export class Screen extends Component<{ presenter: Peer, fullScreen: boolean, onExitFullScreenHandler: () => void }, {}> {
 
-  constructor(props: { presenter: Peer , fullScreen: boolean}) {
+  constructor(props: { presenter: Peer , fullScreen: boolean, onExitFullScreenHandler: () => void}) {
     super(props);
-
   }
 
   renderBlankSlate() {
@@ -29,6 +28,11 @@ export class Screen extends Component<{ presenter: Peer, fullScreen: boolean }, 
     return (<div className="screen">
       <Fullscreen
         enabled={this.props.fullScreen}
+        onChange={isFull => {
+          if (!isFull) {
+            this.props.onExitFullScreenHandler();
+          }
+        }}
       >
       {presenter ? this.renderVideo(presenter) : this.renderBlankSlate()};
       </Fullscreen>

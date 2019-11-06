@@ -5,14 +5,15 @@ import {Chat, Header, Participants, Screen, Toolbar} from '.';
 import {Peer, Room} from '../models';
 import {ApplicationState, withApplicationContext} from '../context';
 
-class Session extends Component<{ room: Room, applicationState: ApplicationState }, { isChatHidden: boolean, participants: Array<Peer>, presenter: Peer, isFullScreen: boolean }> {
+class Session extends Component<{ room: Room, onDisconnect: () => void, applicationState: ApplicationState }, { isChatHidden: boolean, participants: Array<Peer>, localPeer: Peer, presenter: Peer, isFullScreen: boolean }> {
 
-  constructor(props: { room: Room, applicationState: ApplicationState }) {
+  constructor(props: { room: Room, onDisconnect: () => void, applicationState: ApplicationState }) {
     super(props);
     this.state = {
       isFullScreen: false,
       isChatHidden: false,
       participants: props.room.peers,
+      localPeer: props.room.localPeer,
       presenter: props.room.activePeer
     };
 
@@ -59,8 +60,8 @@ class Session extends Component<{ room: Room, applicationState: ApplicationState
     if (action === 'full-screen') {
       console.log('Entering full screen');
       this.setState({isFullScreen: true});
-    }
-    if (action === 'share') {
+    
+    } else  if (action === 'share') {
       if (room.localPeer.stream == null) {
         const mediaDevices: any = navigator.mediaDevices;
         const constraints = {video: true};
@@ -86,6 +87,10 @@ class Session extends Component<{ room: Room, applicationState: ApplicationState
       } else {
         room.stopStreaming();
       }
+    
+    } else if (action === 'leave') {
+      room.disconnect();
+      this.props.onDisconnect();
     }
   }
 
@@ -97,15 +102,19 @@ class Session extends Component<{ room: Room, applicationState: ApplicationState
     return null;
   }
 
+  onExitFullScreen() {
+    console.log('Exiting full screen');
+    this.setState({isFullScreen: false});
+  }
 
   render() {
     return (
       <div className="container">
         <Header link={"http://officeshare.com/123"} title={"My room 1"} toggleChat={this.handleChatToggle}/>
         <div className="content">
-          <Participants participants={this.state.participants}/>
+          <Participants participants={this.state.participants} localPeer={this.state.localPeer}/>
           <div className="viewer">
-            <Screen fullScreen={this.state.isFullScreen} presenter={this.state.presenter}/>
+            <Screen fullScreen={this.state.isFullScreen} presenter={this.state.presenter} onExitFullScreenHandler={this.onExitFullScreen.bind(this)}/>
             <Toolbar actionHandler={this.handleToolbarAction.bind(this)}/>
             {/*<Information/>*/}
           </div>

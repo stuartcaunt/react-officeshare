@@ -98,10 +98,14 @@ body {
         width: 190px;
         height: 113px;
         margin-bottom: 5px;
-        img, video {
+        text-align: center;
+        video {
           width: 190px;
           height: 113px;
           box-shadow: 0px 0px 6px 0px #0000001a;
+        }
+        img {
+          height: 113px;
         }
         position: relative;
         //border: 2px solid #1e1e1e;

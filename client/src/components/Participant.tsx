@@ -24,7 +24,7 @@ export class Participant extends Component<{ peer: Peer }, { stream: MediaStream
     const {peer} = this.props;
     const {stream} = this.state;
     return (<div className="participant">
-      {(stream == null) && <img src="/images/thumbnails/screen_ubuntu.png"/>}
+      {(stream == null) && <img src="/images/stop-screen-share.png"/>}
       {(stream != null) && <Video stream={this.state.stream}/>}
       <div className="participant__user">
         <span className="participant__user__content">
