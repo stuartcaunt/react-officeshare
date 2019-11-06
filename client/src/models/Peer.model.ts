@@ -156,8 +156,8 @@ export class Peer {
     // Update stream (observable)
     this.stream = event.streams[0];
 
-    // Notify room
-    this._room.activePeer = this;
+    // // Notify room
+    // this._room.activePeer = this;
   }
 
   public onRemoteStreamStopped() {

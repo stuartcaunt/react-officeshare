@@ -53,6 +53,8 @@ export class Room {
     this._socket.on('offer', this.onOffer.bind(this));
     this._socket.on('answer', this.onAnswer.bind(this));
     this._socket.on('candidate', this.onIceCandidate.bind(this));
+    this._socket.on('presenter_started', this.onPresenterStarted.bind(this));
+    this._socket.on('preseneter_stopped', this.onPresenterStopped.bind(this));
 
     // Store current peer
     peerDataArrays.forEach(peerData => {
@@ -68,18 +70,18 @@ export class Room {
   public startStreaming(stream: MediaStream) {
     this._localPeer.stream = stream;
 
-    // Update main stream
-    this.activePeer = this._localPeer;
+    // // Update main stream
+    // this.activePeer = this._localPeer;
 
     // Broadcast event to all other peers
     this._socket.emit('stream_started');
   }
 
   public stopStreaming() {
-    // Check if main stream
-    if (this.activePeer === this._localPeer) {
-      this.activePeer = null;
-    }
+    // // Check if main stream
+    // if (this.activePeer === this._localPeer) {
+    //   this.activePeer = null;
+    // }
 
     // Update stream in local peer
     if (this._localPeer.stream != null) {
@@ -93,6 +95,26 @@ export class Room {
 
     // Broadcast event to all other peers
     this._socket.emit('stream_stopped');
+  }
+
+
+  public startPresenting() {
+    if (this._localPeer.stream != null) {
+      // Update main stream
+      this.activePeer = this._localPeer;
+
+      // Broadcast event to all other peers
+      this._socket.emit('presenter_started');
+    }
+  }
+
+  public stopPresenting() {
+    if (this.activePeer === this._localPeer) {
+      this.activePeer = null;
+
+      // Broadcast event to all other peers
+      this._socket.emit('presenter_stopped');
+    }
   }
 
   public disconnect() {
@@ -123,7 +145,7 @@ export class Room {
     // Another peer has started streaming
     const {peerId} = message;
 
-    const peer = this.getPeer(peerId);
+    const peer = this.getRemotePeer(peerId);
     if (peer != null) {
       peer.sendOfferForRemoteStream();
     } else {
@@ -135,7 +157,7 @@ export class Room {
     // A peer has stopped streaming
     const {peerId} = message;
 
-    const peer = this.getPeer(peerId);
+    const peer = this.getRemotePeer(peerId);
     if (peer != null) {
       peer.onRemoteStreamStopped();
 
@@ -151,7 +173,7 @@ export class Room {
     const {peerId, data} = message;
     const sdp = data.sdp;
 
-    const peer = this.getPeer(peerId);
+    const peer = this.getRemotePeer(peerId);
     if (peer != null) {
       peer.sendAnswerForLocalStream(sdp, this._localPeer.stream);
 
@@ -167,7 +189,7 @@ export class Room {
     const {peerId, data} = message;
     const sdp = data.sdp;
 
-    const peer = this.getPeer(peerId);
+    const peer = this.getRemotePeer(peerId);
     if (peer != null) {
       peer.onRemoteStreamAnswer(sdp);
     }
@@ -178,19 +200,35 @@ export class Room {
     const {peerId, data} = message;
     const candidate = data.candidate;
 
-    const peer = this.getPeer(peerId);
+    const peer = this.getRemotePeer(peerId);
     if (peer != null) {
       peer.onRemoteIceCandidate(candidate);
     }
   }
 
-  private getPeer(remotePeerId: string): Peer {
+  private onPresenterStarted(message: any) {
+    const {peerId} = message;
+    const peer = this.getPeer(peerId);
+    if (peer != null) {
+      this.activePeer = peer;
+    }
+  }
+
+  private onPresenterStopped() {
+    this.activePeer = null;
+  }
+
+  private getPeer(peerId: string): Peer {
+    return this._peers.find(peer => peer.id === peerId);
+  }
+
+  private getRemotePeer(remotePeerId: string): Peer {
     return this._remotePeers.find(peer => peer.id === remotePeerId);
   }
 
   private createPeer(remotePeerId: string, userName: string): Peer {
     // Verify it doesn't already exist
-    let peer: Peer = this.getPeer(remotePeerId);
+    let peer: Peer = this.getRemotePeer(remotePeerId);
     if (peer != null) {
       return peer;
     }
@@ -206,7 +244,7 @@ export class Room {
 
   private removePeer(remotePeerId: string) {
     // Get peer associated with the Id
-    const peer = this.getPeer(remotePeerId);
+    const peer = this.getRemotePeer(remotePeerId);
     if (peer != null) {
       // Remove active peer
       if (this.activePeer === peer) {

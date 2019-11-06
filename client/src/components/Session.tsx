@@ -18,7 +18,7 @@ class Session extends Component<{ room: Room, onDisconnect: () => void, applicat
       handler: this.handleFullScreenAction.bind(this),
       enabled: true,
       visible: true
-    }), 
+    }),
     new ToolbarAction({
       id: 'share',
       icon: 'share',
@@ -35,6 +35,14 @@ class Session extends Component<{ room: Room, onDisconnect: () => void, applicat
       enabled: true,
       visible: false
     }),
+    new ToolbarAction({
+      id: 'present',
+      icon: 'share',
+      label: 'Present',
+      handler: this.handlePresentAction.bind(this),
+      enabled: true,
+      visible: false
+    }), 
     new ToolbarAction({
       id: 'leave',
       icon: 'leave',
@@ -120,6 +128,7 @@ class Session extends Component<{ room: Room, onDisconnect: () => void, applicat
 
             this._toolbarActions.find(action => action.id === 'share').visible = false;
             this._toolbarActions.find(action => action.id === 'unshare').visible = true;
+            this._toolbarActions.find(action => action.id === 'present').visible = true;
             this.setState({toolbarActions: this._toolbarActions});
 
           })
@@ -143,7 +152,13 @@ class Session extends Component<{ room: Room, onDisconnect: () => void, applicat
 
     this._toolbarActions.find(action => action.id === 'share').visible = true;
     this._toolbarActions.find(action => action.id === 'unshare').visible = false;
+    this._toolbarActions.find(action => action.id === 'present').visible = false;
     this.setState({toolbarActions: this._toolbarActions});
+  }
+
+  handlePresentAction() {
+    const room = this.props.room;
+    room.startPresenting();
   }
 
   handleLeaveAction() {
