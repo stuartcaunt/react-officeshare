@@ -4,6 +4,8 @@ const uuid = require('node-uuid');
 module.exports = function (server) {
   const io = socketIO.listen(server);
 
+  let activePresenter = null;
+
   io.sockets.on('connection', function (socket) {
 
     // Set up listeners
@@ -15,6 +17,8 @@ module.exports = function (server) {
     socket.on('candidate', candidate);
     socket.on('stream_started', streamStarted);
     socket.on('stream_stopped', streamStopped);
+    socket.on('presenter_started', presenterStarted);
+    socket.on('presenter_stopped', presenterStopped);
 
     function join(data, cb) {
       const roomName = data.roomName || 'room-' + uuid();
@@ -112,10 +116,48 @@ module.exports = function (server) {
         socket.to(socket.userData.roomName).emit('stream_stopped', {
           peerId: socket.id,
         });
+
+        if (activePresenter === socket.id) {
+          removeActivePresenter(socket.userData.roomName, socket.userData.userName, socket.id);
+        }
+      }
+    }
+
+    function presenterStarted() {
+      if (socket.userData && socket.userData.roomName) {
+        if (socket.userData.streaming) {
+          console.log(socket.userData.userName + ' (' + socket.id + ') started presenting to room ' + socket.userData.roomName);
+  
+          activePresenter = socket.id;
+  
+          io.in(socket.userData.roomName).emit('presenter_started', {
+            peerId: socket.id
+          });
+  
+        } else {
+          console.log(socket.userData.userName + ' (' + socket.id + ') wanted to present to room '  + socket.userData.roomName  + ' but cannot because they are not streaming');
+        }
+      }
+    }
+  
+    function presenterStopped() {
+      if (socket.userData && socket.userData.roomName) {
+        removeActivePresenter(socket.userData.roomName, socket.userData.userName, socket.id);
       }
     }
 
   });
+
+
+  function removeActivePresenter(roomName, userName, peerId) {
+    if (activePresenter === peerId) {
+      console.log(userName + ' (' + peerId + ') stopped presenting to room ' + roomName);
+
+      activePresenter = null;
+
+      io.in(roomName).emit('presenter_stopped');
+    }
+  }
 
   function getClientsInRoom(name) {
     const adapter = io.nsps['/'].adapter;
