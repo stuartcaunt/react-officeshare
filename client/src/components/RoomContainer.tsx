@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 
-import Session from './Session';
+import {Session} from './Session';
 import {RoomService} from '../services';
 import {Room} from '../models';
 import {RouteComponentProps} from 'react-router-dom';
@@ -8,7 +8,8 @@ import {RouteComponentProps} from 'react-router-dom';
 interface IProps extends RouteComponentProps<{ id: string }> {
 }
 
-class RoomContainer extends Component<IProps, { room: Room, username: string }> {
+export class RoomContainer extends Component<IProps, { room: Room, username: string }> {
+
 
   constructor(props: IProps) {
     super(props);
@@ -73,7 +74,4 @@ class RoomContainer extends Component<IProps, { room: Room, username: string }> 
               </div>
           </div>);
   }
-  }
-
-
-  export default RoomContainer;
+}

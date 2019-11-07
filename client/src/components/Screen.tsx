@@ -14,7 +14,7 @@ export class Screen extends Component<{ presenter: Peer, fullScreen: boolean, on
       <div className="screen__blankslate">
         <div className={"icon"}/>
         <h2 className="title">Waiting for a participant to broadcast their screen</h2>
-        <p>Use the button below to become the presenter</p>
+        <p>Use the buttons below to share your screen and become the presenter</p>
       </div>);
   }
 

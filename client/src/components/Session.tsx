@@ -3,9 +3,8 @@ import {toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {Chat, Header, Participants, Screen, Toolbar} from '.';
 import {Peer, Room, ToolbarAction} from '../models';
-import {ApplicationState, withApplicationContext} from '../context';
 
-class Session extends Component<{ room: Room, onDisconnect: () => void, applicationState: ApplicationState }, { isChatHidden: boolean, participants: Array<Peer>, localPeer: Peer, presenter: Peer, isFullScreen: boolean, toolbarActions: ToolbarAction[] }> {
+export class Session extends Component<{ room: Room, onDisconnect: () => void }, { isChatHidden: boolean, participants: Array<Peer>, localPeer: Peer, presenter: Peer, isFullScreen: boolean, toolbarActions: ToolbarAction[] }> {
 
     /**
      * A list of actions for the toolbar
@@ -53,7 +52,7 @@ class Session extends Component<{ room: Room, onDisconnect: () => void, applicat
     })
   ];
 
-  constructor(props: { room: Room, onDisconnect: () => void, applicationState: ApplicationState }) {
+  constructor(props: { room: Room, onDisconnect: () => void }) {
     super(props);
 
     this.state = {
@@ -69,20 +68,17 @@ class Session extends Component<{ room: Room, onDisconnect: () => void, applicat
   }
 
   public componentDidMount() {
-    const {room, applicationState} = this.props;
-    applicationState.localPeer = room.localPeer;
+    const {room} = this.props;
     room.peers$.subscribe(peers => {
       this.setState({
         participants: peers
       });
-      applicationState.participants = peers;
     });
 
     room.activePeer$.subscribe(peer => {
       this.setState({
         presenter: peer
       });
-      applicationState.presenter = peer;
     });
   }
 
@@ -197,5 +193,3 @@ class Session extends Component<{ room: Room, onDisconnect: () => void, applicat
     );
   }
 }
-
-export default withApplicationContext(Session);
