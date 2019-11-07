@@ -24,7 +24,16 @@ export class Room {
   }
 
   set activePeer(value: Peer) {
+    const previousActivePeer = this.activePeer;
+    if (previousActivePeer != null) {
+      previousActivePeer.isPresenter = false;
+    }
+
     this._activePeer$.next(value);
+
+    if (value != null) {
+      value.isPresenter = true;
+    }
   }
 
   get activePeer$(): BehaviorSubject<Peer> {
@@ -39,7 +48,7 @@ export class Room {
     return this._roomName;
   }
 
-  constructor(private _socket: SocketIOClient.Socket, peerDataArrays: Array<any>, private _roomName: string, private _userName: string) {
+  constructor(private _socket: SocketIOClient.Socket, peerDataArrays: Array<any>, presenterPeerId: string, private _roomName: string, private _userName: string) {
 
     // Create a local peer
     this._localPeer = new Peer(this._socket.id, this._userName, this);
@@ -65,24 +74,20 @@ export class Room {
         peer.sendOfferForRemoteStream();
       }
     });
+
+    if (presenterPeerId != null) {
+      this.onPresenterStarted({peerId: presenterPeerId});
+    }
   }
 
   public startStreaming(stream: MediaStream) {
     this._localPeer.stream = stream;
-
-    // // Update main stream
-    // this.activePeer = this._localPeer;
 
     // Broadcast event to all other peers
     this._socket.emit('stream_started');
   }
 
   public stopStreaming() {
-    // // Check if main stream
-    // if (this.activePeer === this._localPeer) {
-    //   this.activePeer = null;
-    // }
-
     // Update stream in local peer
     if (this._localPeer.stream != null) {
       this._localPeer.stream.getTracks()[0].stop();
@@ -95,8 +100,12 @@ export class Room {
 
     // Broadcast event to all other peers
     this._socket.emit('stream_stopped');
-  }
 
+    // Check if presenting too
+    if (this.activePeer == this.localPeer) {
+      this.stopPresenting();
+    }
+  }
 
   public startPresenting() {
     if (this._localPeer.stream != null) {
@@ -125,6 +134,12 @@ export class Room {
 
   public emit(messageType: string, data: any) {
     this._socket.emit(messageType, data);
+  }
+
+  public onRemoteStreamReceived(peer: Peer) {
+    if (this.activePeer == peer) {
+      this.activePeer = peer;
+    }
   }
 
   private onPeerJoined(message: any) {

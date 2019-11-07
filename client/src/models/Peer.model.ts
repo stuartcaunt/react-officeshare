@@ -16,6 +16,7 @@ export class Peer {
   private _remoteStreamPeerConnection: RTCPeerConnection = null;
   private _localStreamPeerConnection: RTCPeerConnection = null;
   private _stream$: BehaviorSubject<MediaStream> = new BehaviorSubject<MediaStream>(null);
+  private _isPresenter$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);;
 
   get stream$(): BehaviorSubject<MediaStream> {
     return this._stream$;
@@ -35,6 +36,18 @@ export class Peer {
 
   get userName(): string {
     return this._userName;
+  }
+
+  get isPresenter$(): BehaviorSubject<boolean> {
+    return this._isPresenter$;
+  }
+
+  get isPresenter(): boolean {
+    return this._isPresenter$.value;
+  }
+
+  set isPresenter(value: boolean) {
+    this._isPresenter$.next(value);
   }
 
   constructor(private _id: string, private _userName: string, private _room: Room) {
@@ -157,7 +170,7 @@ export class Peer {
     this.stream = event.streams[0];
 
     // // Notify room
-    // this._room.activePeer = this;
+    this._room.onRemoteStreamReceived(this);
   }
 
   public onRemoteStreamStopped() {

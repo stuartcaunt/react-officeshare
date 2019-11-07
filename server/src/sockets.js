@@ -30,7 +30,8 @@ module.exports = function (server) {
       leave();
 
       const roomData = {
-        clients: getClientsInRoom(roomName)
+        clients: getClientsInRoom(roomName),
+        presenter: activePresenter
       };
 
       if (cb) {

@@ -17,8 +17,9 @@ export class RoomService {
         // Join room
         socket.emit('join', {roomName: roomName, userName: userName}, (data: any) => {
           const otherClients = data.clients;
+          const presenterPeerId = data.presenter;
 
-          const room = new Room(socket, otherClients, roomName, userName);
+          const room = new Room(socket, otherClients, presenterPeerId, roomName, userName);
           resolve(room);
 
           // TODO handle errors (modify return data)

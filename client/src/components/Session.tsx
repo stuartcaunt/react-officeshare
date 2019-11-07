@@ -28,7 +28,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     }), 
     new ToolbarAction({
       id: 'unshare',
-      icon: 'share',
+      icon: 'stop-share',
       label: 'Stop sharing',
       handler: this.handleStopSharingAction.bind(this),
       enabled: true,
@@ -36,7 +36,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     }),
     new ToolbarAction({
       id: 'present',
-      icon: 'share',
+      icon: 'present',
       label: 'Present',
       handler: this.handlePresentAction.bind(this),
       enabled: true,
@@ -76,8 +76,10 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     });
 
     room.activePeer$.subscribe(peer => {
+      this._toolbarActions.find(action => action.id === 'present').enabled = (peer != this.state.localPeer);
       this.setState({
-        presenter: peer
+        presenter: peer,
+        toolbarActions: this._toolbarActions
       });
     });
   }
@@ -116,8 +118,6 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
             toast.success('You are now sharing your screen');
             stream.oninactive = () => {
               if (room.localPeer.stream != null) {
-                toast.success('You have stopped sharing your screen');
-
                 this.handleStopSharingAction();
               }
             }

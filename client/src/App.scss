@@ -107,6 +107,12 @@ body {
         img {
           height: 113px;
         }
+        &.placeholder {
+          width: 190px;
+          height: 113px;
+          background-color: white;
+          mask: url("/images/stop-desktop-share.png") no-repeat center;
+        }
         position: relative;
         //border: 2px solid #1e1e1e;
         &__user {
@@ -260,7 +266,14 @@ body {
       background-image: url("/images/expand-solid.svg");
     }
     &.share {
-      background-image: url("/images/desktop.svg");
+      background-image: url("/images/desktop-share.png");
+    }
+    &.stop-share {
+      background-image: url("/images/stop-desktop-share.png");
+    }
+    &.present {
+      background-color: white;
+      mask: url("/images/chalkboard-teacher.svg") no-repeat center;
     }
     &.settings {
       background-image: url("/images/cog.svg");
