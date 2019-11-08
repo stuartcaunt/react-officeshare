@@ -2,9 +2,9 @@ import React, {Component} from 'react';
 import {Participant} from "./Participant";
 import {Peer} from '../models';
 
-export class Participants extends Component<{ participants: Array<Peer>, localPeer: Peer }, {}> {
+export class Participants extends Component<{ participants: Array<Peer>, localPeer: Peer, onParticipantClick: (peer: Peer) => void }, {}> {
 
-  constructor(props: { participants: Array<Peer>, localPeer: Peer }) {
+  constructor(props: { participants: Array<Peer>, localPeer: Peer, onParticipantClick: (peer: Peer) => void }) {
     super(props);
   }
 
@@ -12,7 +12,7 @@ export class Participants extends Component<{ participants: Array<Peer>, localPe
    * Render local peer
    */
   private renderLocalPeer() {
-    return <Participant peer={this.props.localPeer}/>;
+    return <Participant peer={this.props.localPeer} onParticipantClick={this.props.onParticipantClick}/>;
   }
 
   /**
@@ -23,7 +23,7 @@ export class Participants extends Component<{ participants: Array<Peer>, localPe
 
     if (otherPeers.length > 0) {
       return otherPeers.map((participant, index) => (
-        <Participant key={index} peer={participant}/>
+        <Participant key={index} peer={participant} onParticipantClick={this.props.onParticipantClick}/>
       ));
     } else {
       return <div>Waiting for other people to join...</div>

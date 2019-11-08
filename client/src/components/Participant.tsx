@@ -2,9 +2,9 @@ import React, {Component} from 'react';
 import {Peer} from '../models';
 import {Video} from './Video';
 
-export class Participant extends Component<{ peer: Peer }, { stream: MediaStream, isPresenter: boolean }> {
+export class Participant extends Component<{ peer: Peer, onParticipantClick: (peer: Peer) => void}, { stream: MediaStream, isPresenter: boolean }> {
 
-  constructor(props: { peer: Peer }) {
+  constructor(props: { peer: Peer, onParticipantClick: (peer: Peer) => void }) {
     super(props);
     this.state = {
       stream: null,
@@ -26,10 +26,16 @@ export class Participant extends Component<{ peer: Peer }, { stream: MediaStream
     });
   }
 
+  private onParticipantClick() {
+    if (this.state.stream != null) {
+      this.props.onParticipantClick(this.props.peer);
+    }
+  }
+
   render() {
     const {peer} = this.props;
     const {stream, isPresenter} = this.state;
-    return (<div className="participant">
+    return (<div className={`participant ${this.state.stream == null ? '' : 'participant-selectable'}`} onClick={this.onParticipantClick.bind(this)}>
       {(stream == null) && <img src="/images/stop-desktop-share-inverted.png"/>}
       {(stream != null) && <Video stream={this.state.stream}/>}
       <div className="participant__user">

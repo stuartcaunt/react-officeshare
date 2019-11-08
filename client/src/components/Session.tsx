@@ -200,12 +200,18 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     this.startPresenter();
   }
 
+  onParticipantClick(peer: Peer) {
+    if (this.props.room.activePeer != peer) {
+      this.props.room.activePeer = peer;
+    }
+  }
+
   render() {
     return (
       <div className="container">
         <Header link={"http://officeshare.com/123"} title={this.props.room.name} toggleChat={this.handleChatToggle}/>
         <div className="content">
-          <Participants participants={this.state.participants} localPeer={this.state.localPeer}/>
+          <Participants participants={this.state.participants} localPeer={this.state.localPeer} onParticipantClick={this.onParticipantClick.bind(this)}/>
           <div className="viewer">
             <Screen fullScreen={this.state.isFullScreen} presenter={this.state.presenter} onExitFullScreenHandler={this.onExitFullScreen.bind(this)}/>
             <Toolbar actions={this.state.toolbarActions}/>

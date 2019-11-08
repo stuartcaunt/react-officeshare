@@ -10,6 +10,7 @@ export class Room {
   private _localPeer: Peer = null;
 
   private _activePeer$: BehaviorSubject<Peer> = new BehaviorSubject<Peer>(null);
+  private _presenter: Peer = null;
 
   get peers(): Array<Peer> {
     return this._peers;
@@ -24,20 +25,33 @@ export class Room {
   }
 
   set activePeer(value: Peer) {
-    const previousActivePeer = this.activePeer;
-    if (previousActivePeer != null) {
-      previousActivePeer.isPresenter = false;
+    this._activePeer$.next(value);
+  }
+
+  get activePeer$(): BehaviorSubject<Peer> {
+    return this._activePeer$;
+  }
+
+  set presenter(value: Peer) {
+    if (this._presenter != null) {
+      this._presenter.isPresenter = false;
+
+      if (this.activePeer == this._presenter) {
+        this.activePeer = null;
+      }
     }
 
-    this._activePeer$.next(value);
+    this._presenter = value;
+
+    this.activePeer = this._presenter;
 
     if (value != null) {
       value.isPresenter = true;
     }
   }
 
-  get activePeer$(): BehaviorSubject<Peer> {
-    return this._activePeer$;
+  get presenter(): Peer {
+    return this._presenter;
   }
 
   get localPeer(): Peer {
@@ -110,7 +124,7 @@ export class Room {
   public startPresenting() {
     if (this._localPeer.stream != null) {
       // Update main stream
-      this.activePeer = this._localPeer;
+      this.presenter = this._localPeer;
 
       // Broadcast event to all other peers
       this._socket.emit('presenter_started');
@@ -118,8 +132,8 @@ export class Room {
   }
 
   public stopPresenting() {
-    if (this.activePeer === this._localPeer) {
-      this.activePeer = null;
+    if (this.presenter === this._localPeer) {
+      this.presenter = null;
 
       // Broadcast event to all other peers
       this._socket.emit('presenter_stopped');
@@ -225,12 +239,12 @@ export class Room {
     const {peerId} = message;
     const peer = this.getPeer(peerId);
     if (peer != null) {
-      this.activePeer = peer;
+      this.presenter = peer;
     }
   }
 
   private onPresenterStopped() {
-    this.activePeer = null;
+    this.presenter = null;
   }
 
   private getPeer(peerId: string): Peer {

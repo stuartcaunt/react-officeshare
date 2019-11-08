@@ -18,7 +18,7 @@ export class Toolbar extends Component<{ actions: ToolbarAction[] }, {}> {
    * @param action the action to render
    */
   renderAction(action: ToolbarAction) {
-    return <li className={`action-item  ${action.enabled ? '' : 'action-disabled'}`} role="presentation" key={action.id} onClick={() => action.handler()}>
+    return <li className={`action-item ${action.enabled ? '' : 'action-disabled'}`} role="presentation" key={action.id} onClick={() => action.handler()}>
       <a className={`action-label icon actions ${action.icon} `} role="button"/>
       <span className="action-description">{action.label}</span>
     </li>;
