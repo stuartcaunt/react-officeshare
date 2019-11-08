@@ -1,10 +1,10 @@
 import React, {Component} from 'react';
 import {toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import {Chat, Header, Participants, Screen, Toolbar} from '.';
+import {Chat, Header, Participants, Screen, Toolbar, Modal} from '.';
 import {Peer, Room, ToolbarAction} from '../models';
 
-export class Session extends Component<{ room: Room, onDisconnect: () => void }, { isChatHidden: boolean, participants: Array<Peer>, localPeer: Peer, presenter: Peer, isFullScreen: boolean, toolbarActions: ToolbarAction[] }> {
+export class Session extends Component<{ room: Room, onDisconnect: () => void }, { isChatHidden: boolean, participants: Array<Peer>, localPeer: Peer, presenter: Peer, isFullScreen: boolean, toolbarActions: ToolbarAction[], presenterModalVisible: boolean }> {
 
     /**
      * A list of actions for the toolbar
@@ -38,7 +38,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
       id: 'present',
       icon: 'present',
       label: 'Present',
-      handler: this.handlePresentAction.bind(this),
+      handler: this.startPresenter.bind(this),
       enabled: true,
       visible: false
     }), 
@@ -61,10 +61,13 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
       participants: props.room.peers,
       localPeer: props.room.localPeer,
       presenter: props.room.activePeer,
-      toolbarActions: this._toolbarActions
+      toolbarActions: this._toolbarActions,
+      presenterModalVisible: false
     };
 
     this.handleChatToggle = this.handleChatToggle.bind(this);
+    this.closePresenterModal = this.closePresenterModal.bind(this);
+    this.startPresenterFromModal = this.startPresenterFromModal.bind(this);
   }
 
   public componentDidMount() {
@@ -127,6 +130,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
             this._toolbarActions.find(action => action.id === 'present').visible = true;
             this.setState({toolbarActions: this._toolbarActions});
 
+            this.openPresenterModal();
           })
           .catch((error: Error) => {
             toast.error('You have decided not to share your screen.');
@@ -152,9 +156,10 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     this.setState({toolbarActions: this._toolbarActions});
   }
 
-  handlePresentAction() {
+  startPresenter() {
     const room = this.props.room;
     room.startPresenting();
+    toast.success('You have started presenting your screen.');
   }
 
   handleLeaveAction() {
@@ -176,6 +181,25 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     this.setState({isFullScreen: false});
   }
 
+  openPresenterModal() {
+    this.setState({
+      presenterModalVisible : true
+    });
+  }
+
+  closePresenterModal() {
+    this.setState({
+      presenterModalVisible : false
+    });
+  }
+
+  startPresenterFromModal() {
+    this.setState({
+      presenterModalVisible : false
+    });
+    this.startPresenter();
+  }
+
   render() {
     return (
       <div className="container">
@@ -188,6 +212,13 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
             {/*<Information/>*/}
           </div>
           {this.renderChat()}
+          <Modal isVisible={this.state.presenterModalVisible}>
+              <h3>Would you like to become the presenter?</h3>
+              <div className="presenter-modal-buttons">
+                <button onClick={this.startPresenterFromModal}>Yes</button>
+                <button onClick={this.closePresenterModal}>No</button>
+              </div>
+            </Modal>
         </div>
       </div>
     );

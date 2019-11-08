@@ -6,3 +6,4 @@ export * from './Information'
 export * from './Toolbar';
 export * from './HomeContainer';
 export * from './Session';
+export * from './Modal';
