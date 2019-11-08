@@ -19,6 +19,22 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
       visible: true
     }),
     new ToolbarAction({
+      id: 'follow',
+      icon: 'follow',
+      label: 'Follow',
+      handler: this.startFollowing.bind(this),
+      enabled: true,
+      visible: false
+    }), 
+    new ToolbarAction({
+      id: 'stop-follow',
+      icon: 'stop-follow',
+      label: 'Stop following',
+      handler: this.stopFollowing.bind(this),
+      enabled: true,
+      visible: true
+    }), 
+    new ToolbarAction({
       id: 'share',
       icon: 'share',
       label: 'Share my screen',
@@ -38,7 +54,15 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
       id: 'present',
       icon: 'present',
       label: 'Present',
-      handler: this.startPresenter.bind(this),
+      handler: this.startPresenting.bind(this),
+      enabled: true,
+      visible: false
+    }), 
+    new ToolbarAction({
+      id: 'stop-present',
+      icon: 'stop-present',
+      label: 'Stop Presenting',
+      handler: this.stopPresenting.bind(this),
       enabled: true,
       visible: false
     }), 
@@ -67,7 +91,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
 
     this.handleChatToggle = this.handleChatToggle.bind(this);
     this.closePresenterModal = this.closePresenterModal.bind(this);
-    this.startPresenterFromModal = this.startPresenterFromModal.bind(this);
+    this.startPresentingFromModal = this.startPresentingFromModal.bind(this);
   }
 
   public componentDidMount() {
@@ -79,7 +103,8 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     });
 
     room.activePeer$.subscribe(peer => {
-      this._toolbarActions.find(action => action.id === 'present').enabled = (peer != this.state.localPeer);
+      this._toolbarActions.find(action => action.id === 'present').visible = (peer != this.state.localPeer && this.state.localPeer.stream != null);
+      this._toolbarActions.find(action => action.id === 'stop-present').visible = (peer == this.state.localPeer && this.state.localPeer.stream != null);
       this.setState({
         presenter: peer,
         toolbarActions: this._toolbarActions
@@ -110,7 +135,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
   }
 
   handleShareAction() {
-    const room = this.props.room;
+    const {room} = this.props;
     if (room.localPeer.stream == null) {
       const mediaDevices: any = navigator.mediaDevices;
       const constraints = {video: true};
@@ -128,6 +153,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
             this._toolbarActions.find(action => action.id === 'share').visible = false;
             this._toolbarActions.find(action => action.id === 'unshare').visible = true;
             this._toolbarActions.find(action => action.id === 'present').visible = true;
+            this._toolbarActions.find(action => action.id === 'stop-present').visible = false;
             this.setState({toolbarActions: this._toolbarActions});
 
             this.openPresenterModal();
@@ -145,7 +171,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
   }
 
   handleStopSharingAction() {
-    const room = this.props.room;
+    const {room} = this.props;
     room.stopStreaming();
 
     toast.success('You have stopped sharing your screen.');
@@ -153,17 +179,54 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     this._toolbarActions.find(action => action.id === 'share').visible = true;
     this._toolbarActions.find(action => action.id === 'unshare').visible = false;
     this._toolbarActions.find(action => action.id === 'present').visible = false;
+    this._toolbarActions.find(action => action.id === 'stop-present').visible = false;
     this.setState({toolbarActions: this._toolbarActions});
   }
 
-  startPresenter() {
-    const room = this.props.room;
+  startPresenting() {
+    const {room} = this.props;
+    
+    this.startFollowing();
+
     room.startPresenting();
     toast.success('You have started presenting your screen.');
+
+    this._toolbarActions.find(action => action.id === 'present').visible = false;
+    this._toolbarActions.find(action => action.id === 'stop-present').visible = true;
+    this.setState({toolbarActions: this._toolbarActions});
+  }
+
+  stopPresenting() {
+    const {room} = this.props;
+    
+    room.stopPresenting();
+    toast.success('You have stopped presenting your screen.');
+
+    this._toolbarActions.find(action => action.id === 'present').visible = true;
+    this._toolbarActions.find(action => action.id === 'stop-present').visible = false;
+    this.setState({toolbarActions: this._toolbarActions});
+  }
+
+  startFollowing() {
+    const {room} = this.props;
+    room.followingPresenter = true;
+
+    this._toolbarActions.find(action => action.id === 'follow').visible = false;
+    this._toolbarActions.find(action => action.id === 'stop-follow').visible = true;
+    this.setState({toolbarActions: this._toolbarActions});
+  }
+
+  stopFollowing() {
+    const {room} = this.props;
+    room.followingPresenter = false;
+
+    this._toolbarActions.find(action => action.id === 'follow').visible = true;
+    this._toolbarActions.find(action => action.id === 'stop-follow').visible = false;
+    this.setState({toolbarActions: this._toolbarActions});
   }
 
   handleLeaveAction() {
-    const room = this.props.room;
+    const {room} = this.props;
     room.disconnect();
     this.props.onDisconnect();
   }
@@ -193,23 +256,29 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     });
   }
 
-  startPresenterFromModal() {
+  startPresentingFromModal() {
     this.setState({
       presenterModalVisible : false
     });
-    this.startPresenter();
+    this.startPresenting();
   }
 
   onParticipantClick(peer: Peer) {
-    if (this.props.room.activePeer != peer) {
-      this.props.room.activePeer = peer;
+    const {room} = this.props;
+    if (room.activePeer != peer) {
+      room.activePeer = peer;
+
+      // Stop following presenter
+      room.followingPresenter = false;
+
+      this.stopFollowing();
     }
   }
 
   render() {
     return (
       <div className="container">
-        <Header link={"http://officeshare.com/123"} title={this.props.room.name} toggleChat={this.handleChatToggle}/>
+        <Header link={"http://officeshare.com/123"} title={`${this.props.room.name} ${this.state.presenter != null ? '(' + this.state.presenter.userName + ')' : ''}`} toggleChat={this.handleChatToggle}/>
         <div className="content">
           <Participants participants={this.state.participants} localPeer={this.state.localPeer} onParticipantClick={this.onParticipantClick.bind(this)}/>
           <div className="viewer">
@@ -221,7 +290,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
           <Modal isVisible={this.state.presenterModalVisible}>
               <h3>Would you like to become the presenter?</h3>
               <div className="presenter-modal-buttons">
-                <button onClick={this.startPresenterFromModal}>Yes</button>
+                <button onClick={this.startPresentingFromModal}>Yes</button>
                 <button onClick={this.closePresenterModal}>No</button>
               </div>
             </Modal>

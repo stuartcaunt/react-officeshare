@@ -6,11 +6,11 @@ export class Room {
 
   private _peers: Array<Peer> = [];
   private _peers$: BehaviorSubject<Array<Peer>> = new BehaviorSubject([]);
-
   private _localPeer: Peer = null;
 
   private _activePeer$: BehaviorSubject<Peer> = new BehaviorSubject<Peer>(null);
   private _presenter: Peer = null;
+  private _folowingPresenter: boolean = true;
 
   get peers(): Array<Peer> {
     return this._peers;
@@ -36,14 +36,16 @@ export class Room {
     if (this._presenter != null) {
       this._presenter.isPresenter = false;
 
-      if (this.activePeer == this._presenter) {
+      if (this.activePeer == this._presenter && this._folowingPresenter) {
         this.activePeer = null;
       }
     }
 
     this._presenter = value;
 
-    this.activePeer = this._presenter;
+    if (this._folowingPresenter) {
+      this.activePeer = this._presenter;
+    }
 
     if (value != null) {
       value.isPresenter = true;
@@ -62,6 +64,17 @@ export class Room {
     return this._roomName;
   }
 
+  get followingPresenter(): boolean {
+    return this._folowingPresenter;
+  }
+
+  set followingPresenter(value: boolean) {
+    this._folowingPresenter = value;
+    if (this._folowingPresenter && this.activePeer != this._presenter) {
+      this.activePeer = this._presenter;
+    }
+  }
+
   constructor(private _socket: SocketIOClient.Socket, peerDataArrays: Array<any>, presenterPeerId: string, private _roomName: string, private _userName: string) {
 
     // Create a local peer
@@ -77,7 +90,7 @@ export class Room {
     this._socket.on('answer', this.onAnswer.bind(this));
     this._socket.on('candidate', this.onIceCandidate.bind(this));
     this._socket.on('presenter_started', this.onPresenterStarted.bind(this));
-    this._socket.on('preseneter_stopped', this.onPresenterStopped.bind(this));
+    this._socket.on('presenter_stopped', this.onPresenterStopped.bind(this));
 
     // Store current peer
     peerDataArrays.forEach(peerData => {

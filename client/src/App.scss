@@ -312,15 +312,23 @@ body {
     &.stop-share {
       background-image: url("/images/stop-desktop-share.png");
     }
+    &.follow {
+      background-image: url("/images/follow.png");
+    }
+    &.stop-follow {
+      background-image: url("/images/stop-follow.png");
+    }
     &.present {
-      background-color: white;
-      mask: url("/images/chalkboard-teacher.svg") no-repeat center;
+      background-image: url("/images/present.png");
+    }
+    &.stop-present {
+      background-image: url("/images/stop-present.png");
     }
     &.settings {
       background-image: url("/images/cog.svg");
     }
     &.leave {
-      background-image: url("/images/hang_up.png");
+      background-image: url("/images/exit.png");
     }
     &.microphone {
       background-image: url("/images/microphone.svg");
