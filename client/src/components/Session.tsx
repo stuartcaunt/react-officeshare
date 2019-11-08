@@ -278,7 +278,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
   render() {
     return (
       <div className="container">
-        <Header link={"http://officeshare.com/123"} title={`${this.props.room.name} ${this.state.presenter != null ? '(' + this.state.presenter.userName + ')' : ''}`} toggleChat={this.handleChatToggle}/>
+        <Header link={window.location.href} title={`${this.props.room.name} ${this.state.presenter != null ? '(' + this.state.presenter.userName + ')' : ''}`} toggleChat={this.handleChatToggle}/>
         <div className="content">
           <Participants participants={this.state.participants} localPeer={this.state.localPeer} onParticipantClick={this.onParticipantClick.bind(this)}/>
           <div className="viewer">

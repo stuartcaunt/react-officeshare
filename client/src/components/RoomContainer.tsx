@@ -8,14 +8,19 @@ import {RouteComponentProps} from 'react-router-dom';
 interface IProps extends RouteComponentProps<{ id: string }> {
 }
 
-export class RoomContainer extends Component<IProps, { room: Room, username: string }> {
+export class RoomContainer extends Component<IProps, { room: Room, roomName: string, username: string, isRoomKnown: boolean }> {
 
 
   constructor(props: IProps) {
     super(props);
+
+    const {id} = this.props.match.params;
+
     this.state = {
       room: null,
-      username: localStorage.getItem('username') || ''
+      roomName: '',
+      username: localStorage.getItem('username') || '',
+      isRoomKnown: (id != null)
     }
   }
 
@@ -37,14 +42,34 @@ export class RoomContainer extends Component<IProps, { room: Room, username: str
       });
   }
 
-  handleUsernameChange(event: any) {
+  handleUserNameChange(event: any) {
     const username = event.target.value;
     this.setState({username: username});
     localStorage.setItem('username', username);
   }
 
+  handleRoomNameChange(event: any) {
+    const roomName = event.target.value;
+    this.setState({roomName: roomName});
+  }
+
   handleRoomDisconnect() {
     this.setState({room: null});
+  }
+
+  renderRoomNameInput() {
+    const {id} = this.props.match.params;
+
+    if (id == null) {
+      return <div>
+        <p className="room-join-container-box__help">You are about to create a new room: please enter a room name.</p>
+        <div className="room-join-container-box__username">
+          <input type="text" value={this.state.roomName} onChange={this.handleUserNameChange.bind(this)} placeholder="Enter room name"/>
+        </div>
+      </div>;
+    } else {
+      return;
+    }
   }
 
   render() {
@@ -59,11 +84,12 @@ export class RoomContainer extends Component<IProps, { room: Room, username: str
                     Welcome to officeshare</h2>
                 </div>
                 <div className="room-join-container-box">
+                  {this.renderRoomNameInput()}
                   <p className="room-join-container-box__help">
                     Before joining the room, please tell your us your name.
                   </p>
                   <div className="room-join-container-box__username">
-                    <input type="text" value={this.state.username} onChange={this.handleUsernameChange.bind(this)} placeholder="Enter your name"/>
+                    <input type="text" value={this.state.username} onChange={this.handleUserNameChange.bind(this)} placeholder="Enter your name"/>
                   </div>
                   <div>
                     <button onClick={this.handleJoin.bind(this)} className="room-join-container-box__join" type="submit">

@@ -19,7 +19,7 @@ class App extends Component<{}, {}> {
         <ToastContainer/>
         <Router>
           <div>
-            <Route exact path="/" component={HomeContainer}/>
+            <Route exact path="/" component={RoomContainer}/>
             <Route exact path="/:id" component={RoomContainer}/>
           </div>
         </Router>

@@ -411,7 +411,7 @@ body {
   padding:25px;
   width: 300px;
   &__help {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
   &__join {
     cursor: pointer;
@@ -423,7 +423,7 @@ body {
     background: #009432;
     border-radius: 3px;
     border-width: 0px;
-    margin: 20px 0px 0px 0px;
+    margin: 12px 0px 0px 0px;
     outline: none;
   }
   &__username {
@@ -436,6 +436,7 @@ body {
     overflow: hidden;
     border: 2px solid rgb(223, 225, 230);
     padding: 6px;
+    margin: 0px 0px 8px 0px;
     input {
       box-sizing: border-box;
       color: inherit;
