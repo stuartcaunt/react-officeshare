@@ -31,15 +31,39 @@ export class RoomContainer extends Component<IProps, { room: Room, roomName: str
     const {id} = this.props.match.params;
     const roomService = new RoomService();
 
-    const name = this.state.username;
+    const username = this.state.username;
+    const roomName = this.state.roomName;
 
-    roomService.connect(id, name)
+    if (id == null) {
+      roomService.create(roomName, username)
+      .then(roomPass => {
+        console.log('Room created with Id ' + roomPass.roomId);
+
+        roomService.joinRoom(roomPass.roomId, username, roomPass.socket)
+        .then(room => {
+          this.setState({room})
+
+          window.history.pushState({
+            id: ''
+          }, '', `http://localhost:3000/${roomPass.roomId}`);
+
+        })
+        .catch(error => {
+          console.error('Error getting room: ', error);
+          window.location.href = 'http://localhost:3000';
+        });
+      })
+
+    } else {
+      roomService.connect(id, username)
       .then(room => {
         this.setState({room})
       })
       .catch(error => {
         console.error('Error getting room: ', error);
-      });
+        window.location.href = 'http://localhost:3000';
+    });
+    }
   }
 
   handleUserNameChange(event: any) {
@@ -62,9 +86,9 @@ export class RoomContainer extends Component<IProps, { room: Room, roomName: str
 
     if (id == null) {
       return <div>
-        <p className="room-join-container-box__help">You are about to create a new room: please enter a room name.</p>
+        <p className="room-join-container-box__help">You are about to create a new room. Please enter a room name.</p>
         <div className="room-join-container-box__username">
-          <input type="text" value={this.state.roomName} onChange={this.handleUserNameChange.bind(this)} placeholder="Enter room name"/>
+          <input type="text" value={this.state.roomName} onChange={this.handleRoomNameChange.bind(this)} placeholder="Enter room name"/>
         </div>
       </div>;
     } else {

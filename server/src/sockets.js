@@ -1,14 +1,15 @@
 const socketIO = require('socket.io');
-const uuid = require('node-uuid');
+const shortUUID = require('short-uuid');
 
 module.exports = function (server) {
   const io = socketIO.listen(server);
 
-  let activePresenter = null;
+  const roomDataMap = new Map(); // id: {roomName, activePresenter, owner}
 
   io.sockets.on('connection', function (socket) {
 
     // Set up listeners
+    socket.on('create', create);
     socket.on('join', join);
     socket.on('leave', leave);
     socket.on('disconnect', leave);
@@ -20,48 +21,88 @@ module.exports = function (server) {
     socket.on('presenter_started', presenterStarted);
     socket.on('presenter_stopped', presenterStopped);
 
-    function join(data, cb) {
-      const roomName = data.roomName || 'room-' + uuid();
+    function create(data, cb) {
+      let roomId = shortUUID.generate();
+      while (roomDataMap.has(roomId)) {
+        roomId = shortUUID.generate();
+      }
+
+      const roomName = data.roomName || 'room-' + roomId;
       const userName = data.userName;
 
-      console.log(userName + ' (' + socket.id + ') is joining room ' + roomName);
+      console.log(`${userName} (${socket.id}) is creating room ${roomName} (${roomId})`);
 
       // leave any existing rooms
       leave();
 
-      const roomData = {
-        clients: getClientsInRoom(roomName),
-        presenter: activePresenter
-      };
-
-      if (cb) {
-        cb(roomData);
-      }
-
-      // Emit message to other room members to say we have entered the room
-      socket.to(roomName).emit('join', {
-        peerId: socket.id,
-        userName: userName
+      roomDataMap.set(roomId, {
+        roomName: roomName, 
+        activePresenter: null,
+        owner: socket.id
       });
 
-      socket.join(roomName);
-      socket.userData = {
-        roomName: roomName,
-        userName: userName,
-        streaming: false
-      };
+      // Send back the generated roomId
+      if (cb) {
+        cb({
+          roomId: roomId
+        });
+      }
+    }
+
+    function join(data, cb) {
+      const roomId = data.roomId;
+      const userName = data.userName;
+
+      const roomData = roomDataMap.get(roomId);
+
+      console.log(userName + ' (' + socket.id + ') is joining room ' + roomId);
+
+      // leave any existing rooms
+      leave();
+
+      if (roomData != null) {
+        const roomInfo = {
+          clients: getClientsInRoom(roomId),
+          presenter: roomData.activePresenter,
+          roomName: roomData.roomName
+        };
+  
+        if (cb) {
+          cb(roomInfo);
+        }
+  
+        // Emit message to other room members to say we have entered the room
+        socket.to(roomId).emit('join', {
+          peerId: socket.id,
+          userName: userName
+        });
+  
+        socket.join(roomId);
+        socket.userData = {
+          roomId: roomId,
+          userName: userName,
+          streaming: false
+        };
+  
+      } else {
+        if (cb) {
+          cb({
+            error: 'Room does not exist'
+          })
+        }
+      }
     }
 
     function leave() {
-      if (socket.userData && socket.userData.roomName) {
-        console.log(socket.userData.userName + ' (' + socket.id + ') is leaving room ' + socket.userData.roomName);
+      if (socket.userData && socket.userData.roomId) {
+        console.log(socket.userData.userName + ' (' + socket.id + ') is leaving room ' + socket.userData.roomId);
 
-        socket.to(socket.userData.roomName).emit('leave', {
+        socket.to(socket.userData.roomId).emit('leave', {
           peerId: socket.id,
           userName: socket.userData.userName
         });
 
-        socket.leave(socket.userData.roomName);
+        socket.leave(socket.userData.roomId);
         socket.userData = undefined;
       }
     }
@@ -97,73 +138,83 @@ module.exports = function (server) {
     }
 
     function streamStarted() {
-      if (socket.userData && socket.userData.roomName) {
-        console.log(socket.userData.userName + ' (' + socket.id + ') started streaming to room ' + socket.userData.roomName);
+      if (socket.userData && socket.userData.roomId) {
+        console.log(socket.userData.userName + ' (' + socket.id + ') started streaming to room ' + socket.userData.roomId);
 
         socket.userData.streaming = true;
 
-        socket.to(socket.userData.roomName).emit('stream_started', {
+        socket.to(socket.userData.roomId).emit('stream_started', {
           peerId: socket.id,
         });
       }
     }
 
     function streamStopped() {
-      if (socket.userData && socket.userData.roomName) {
-        console.log(socket.userData.userName + ' (' + socket.id + ') stopped streaming to room ' + socket.userData.roomName);
+      const roomId = socket.userData.roomId;
+      if (socket.userData && roomId) {
+        console.log(socket.userData.userName + ' (' + socket.id + ') stopped streaming to room ' + roomId);
 
         socket.userData.streaming = false;
 
-        socket.to(socket.userData.roomName).emit('stream_stopped', {
+        socket.to(socket.userData.roomId).emit('stream_stopped', {
           peerId: socket.id,
         });
 
-        if (activePresenter === socket.id) {
-          removeActivePresenter(socket.userData.roomName, socket.userData.userName, socket.id);
+        // Check for active presenter
+        let roomData = roomDataMap.get(roomId); 
+        if (roomData.activePresenter === socket.id) {
+          removeActivePresenter(roomId, socket.userData.userName, socket.id);
         }
       }
     }
 
     function presenterStarted() {
-      if (socket.userData && socket.userData.roomName) {
+      const roomId = socket.userData.roomId;
+      if (socket.userData && roomId) {
         if (socket.userData.streaming) {
-          console.log(socket.userData.userName + ' (' + socket.id + ') started presenting to room ' + socket.userData.roomName);
+          console.log(socket.userData.userName + ' (' + socket.id + ') started presenting to room ' + roomId);
   
-          activePresenter = socket.id;
+          // Update active presenter
+          let roomData = roomDataMap.get(roomId); 
+          roomData.activePresenter = socket.id;
+          roomDataMap.set(roomId, roomData); 
   
-          io.in(socket.userData.roomName).emit('presenter_started', {
+          io.in(roomId).emit('presenter_started', {
             peerId: socket.id
           });
   
         } else {
-          console.log(socket.userData.userName + ' (' + socket.id + ') wanted to present to room '  + socket.userData.roomName  + ' but cannot because they are not streaming');
+          console.log(socket.userData.userName + ' (' + socket.id + ') wanted to present to room '  + roomId  + ' but cannot because they are not streaming');
         }
       }
     }
   
     function presenterStopped() {
-      if (socket.userData && socket.userData.roomName) {
-        removeActivePresenter(socket.userData.roomName, socket.userData.userName, socket.id);
+      if (socket.userData && socket.userData.roomId) {
+        removeActivePresenter(socket.userData.roomId, socket.userData.userName, socket.id);
       }
     }
 
   });
 
 
-  function removeActivePresenter(roomName, userName, peerId) {
-    if (activePresenter === peerId) {
-      console.log(userName + ' (' + peerId + ') stopped presenting to room ' + roomName);
+  function removeActivePresenter(roomId, userName, peerId) {
+    let roomData = roomDataMap.get(roomId); 
+    if (roomData != null && roomData.activePresenter === peerId) {
+      console.log(userName + ' (' + peerId + ') stopped presenting to room ' + roomId);
 
-      activePresenter = null;
+      // Update active presenter
+      roomData.activePresenter = null;
+      roomDataMap.set(roomId, roomData); 
 
-      io.in(roomName).emit('presenter_stopped');
+      io.in(roomId).emit('presenter_stopped');
     }
   }
 
-  function getClientsInRoom(name) {
+  function getClientsInRoom(roomId) {
     const adapter = io.nsps['/'].adapter;
-    if (adapter.rooms[name] != null) {
-      const socketIds = Object.keys(adapter.rooms[name].sockets);
+    if (adapter.rooms[roomId] != null) {
+      const socketIds = Object.keys(adapter.rooms[roomId].sockets);
 
       return socketIds.map(socketId => {
         return {

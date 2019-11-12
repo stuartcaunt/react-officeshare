@@ -2,8 +2,7 @@ import React, {Component} from 'react';
 import {BrowserRouter as Router, Route} from "react-router-dom";
 
 import './App.scss';
-import {RoomContainer} from "./components/RoomContainer";
-import {HomeContainer} from "./components";
+import {RoomContainer} from "./components";
 import {ToastContainer} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
