@@ -1,5 +1,6 @@
-import {Peer} from './Peer.model';
-import {BehaviorSubject} from 'rxjs';
+import { Peer } from './Peer.model';
+import { ChatMessage } from './ChatMessage.model';
+import { BehaviorSubject } from 'rxjs';
 
 export class Room {
   private _remotePeers: Array<Peer> = [];
@@ -11,6 +12,9 @@ export class Room {
   private _activePeer$: BehaviorSubject<Peer> = new BehaviorSubject<Peer>(null);
   private _presenter: Peer = null;
   private _folowingPresenter: boolean = true;
+
+  private _chatMessages$: BehaviorSubject<Array<ChatMessage>> = new BehaviorSubject([]);
+
 
   get peers(): Array<Peer> {
     return this._peers;
@@ -75,6 +79,10 @@ export class Room {
     }
   }
 
+  get chatMessages$(): BehaviorSubject<Array<ChatMessage>> {
+    return this._chatMessages$;
+  }
+
   constructor(private _socket: SocketIOClient.Socket, peerDataArrays: Array<any>, presenterPeerId: string, private _roomName: string, private _userName: string) {
 
     // Create a local peer
@@ -91,7 +99,7 @@ export class Room {
     this._socket.on('candidate', this.onIceCandidate.bind(this));
     this._socket.on('presenter_started', this.onPresenterStarted.bind(this));
     this._socket.on('presenter_stopped', this.onPresenterStopped.bind(this));
-
+    this._socket.on('chat:message', this.onChatMessage.bind(this));
     // Store current peer
     peerDataArrays.forEach(peerData => {
       const peer = this.createPeer(peerData.id, peerData.userData.userName);
@@ -103,7 +111,7 @@ export class Room {
     });
 
     if (presenterPeerId != null) {
-      this.onPresenterStarted({peerId: presenterPeerId});
+      this.onPresenterStarted({ peerId: presenterPeerId });
     }
   }
 
@@ -153,6 +161,11 @@ export class Room {
     }
   }
 
+  public sendChatMessage(message: string) {
+    console.log('Sending a new chat message', message);
+    this._socket.emit('chat:message', { message });
+  }
+
   public disconnect() {
     this.stopStreaming();
 
@@ -169,23 +182,28 @@ export class Room {
     }
   }
 
+  private onChatMessage(message: ChatMessage) {
+    console.log('Received new chat message', message);
+    this._chatMessages$.next(this._chatMessages$.getValue().concat([message]));
+  }
+
   private onPeerJoined(message: any) {
     // A peer has joined the room
-    const {peerId, userName} = message;
+    const { peerId, userName } = message;
 
     this.createPeer(peerId, userName);
   }
 
   private onPeerLeft(message: any) {
     // A peer has left the room
-    const {peerId, userName} = message;
+    const { peerId, userName } = message;
 
     this.removePeer(peerId);
   }
 
   private onRemoteStreamStarted(message: any) {
     // Another peer has started streaming
-    const {peerId} = message;
+    const { peerId } = message;
 
     const peer = this.getRemotePeer(peerId);
     if (peer != null) {
@@ -197,7 +215,7 @@ export class Room {
 
   private onRemoteStreamStopped(message: any) {
     // A peer has stopped streaming
-    const {peerId} = message;
+    const { peerId } = message;
 
     const peer = this.getRemotePeer(peerId);
     if (peer != null) {
@@ -212,7 +230,7 @@ export class Room {
 
   private onOffer(message: any) {
     // Another peer has sent a peer connection offer
-    const {peerId, data} = message;
+    const { peerId, data } = message;
     const sdp = data.sdp;
 
     const peer = this.getRemotePeer(peerId);
@@ -228,7 +246,7 @@ export class Room {
 
   private onAnswer(message: any) {
     // Another peer has sent a peer connection answer
-    const {peerId, data} = message;
+    const { peerId, data } = message;
     const sdp = data.sdp;
 
     const peer = this.getRemotePeer(peerId);
@@ -239,7 +257,7 @@ export class Room {
 
   private onIceCandidate(message: any) {
     // Another peer has sent an ice candidate
-    const {peerId, data} = message;
+    const { peerId, data } = message;
     const candidate = data.candidate;
 
     const peer = this.getRemotePeer(peerId);
@@ -249,7 +267,7 @@ export class Room {
   }
 
   private onPresenterStarted(message: any) {
-    const {peerId} = message;
+    const { peerId } = message;
     const peer = this.getPeer(peerId);
     if (peer != null) {
       this.presenter = peer;

@@ -3,7 +3,7 @@ import {BrowserRouter as Router, Route} from "react-router-dom";
 
 import './App.scss';
 import {RoomContainer} from "./components";
-import {ToastContainer} from "react-toastify";
+import {ToastContainer, toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
 class App extends Component<{}, {}> {
@@ -15,7 +15,9 @@ class App extends Component<{}, {}> {
   render() {
     return (
       <div>
-        <ToastContainer/>
+        <ToastContainer position={toast.POSITION.TOP_RIGHT} 
+                        closeOnClick={true}
+                        hideProgressBar={true} />
         <Router>
           <div>
             <Route exact path="/" component={RoomContainer}/>

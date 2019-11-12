@@ -40,9 +40,6 @@ body {
       display: flex;
       align-items: center;
       justify-content: center;
-      &__details {
-
-      }
     }
     .screen {
       flex: 1 auto;
@@ -164,7 +161,8 @@ body {
     display: flex;
     font-weight: 600;
   }
-  .chat-messages {
+  &__messages {
+    overflow: auto;
     padding: 10px;
     flex: 1 auto;
     .message {
@@ -184,10 +182,30 @@ body {
         p {
           margin: 0;
         }
+        a {
+          color: #0073b7;
+          &:active, &:visited {
+            color: #0073b7;
+          }
+          &:hover {
+            color: #0067a3;
+          }
+        }
       }
     }
   }
-  .send-message {
+  &__input {
+    color: #AFB3AD;
+    align-items: center;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    color: #444;
+    font-size: 0.9rem;
+  }
+  &__box {
     border-top: 2px solid #eaeced;
     flex: 0 0 50px;
     color: #AFB3AD;
@@ -243,9 +261,13 @@ body {
   .right {
     font-size: 1em;
     width: 100px;
-    flex: 0 0 150px;
+    flex: 0;
     text-align: right;
     color: white;
+    &__button {
+      display: flex;
+      align-items: center;
+    }
   }
 }
 
@@ -448,4 +470,22 @@ body {
       outline: none;
     }
   }
+}
+
+.badge {
+  display: inline-block;
+  padding: .25em .4em;
+  font-size: 75%;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  margin-left: 5px;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25rem;
+  padding-right: .6em;
+  padding-left: .6em;
+  border-radius: 10rem;
+  color: #fff;
+  background-color: #dc3545;
 }

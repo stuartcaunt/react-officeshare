@@ -2,7 +2,7 @@ import React, {Component, Fragment} from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import {toast} from "react-toastify";
 
-export class Header extends Component<{ title: string, link: string, toggleChat: () => void }, {}> {
+export class Header extends Component<{ title: string, link: string, toggleChat: () => void, unreadChatMessages: number}, {}> {
 
   renderLink() {
     const {link} = this.props;
@@ -15,7 +15,7 @@ export class Header extends Component<{ title: string, link: string, toggleChat:
   }
 
   render() {
-    const {title} = this.props;
+    const {title, unreadChatMessages} = this.props;
     return <div className="header">
       <div className="left">
         {this.renderLink()}
@@ -27,8 +27,11 @@ export class Header extends Component<{ title: string, link: string, toggleChat:
         {/*title={"Host mode"}*/}
         {/*defaultChecked={true}*/}
         {/*/>*/}
-        <button onClick={this.props.toggleChat}>
+        <button className="right__button" onClick={this.props.toggleChat}>
           <i className="far fa-comments"/>
+          { unreadChatMessages > 0 &&
+            <span className="badge">{unreadChatMessages}</span>
+          }
         </button>
       </div>
     </div>

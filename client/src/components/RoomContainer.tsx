@@ -104,8 +104,7 @@ export class RoomContainer extends Component<IProps, { room: Room, roomName: str
               <div className="room-join-container">
                 <div className="room-join-container-intro">
                   <img src={"/images/logo.svg"} />
-                  <h2>
-                    Welcome to officeshare</h2>
+                  <h2>Welcome to officeshare</h2>
                 </div>
                 <div className="room-join-container-box">
                   {this.renderRoomNameInput()}

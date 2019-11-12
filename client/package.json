@@ -11,12 +11,15 @@
     "@types/react-router-dom": "^4.3.1",
     "@types/react-toggle": "^4.0.2",
     "@types/socket.io-client": "^1.4.32",
+    "moment": "^2.24.0",
     "node-sass": "^4.11.0",
     "react": "^16.8.1",
     "react-addons-css-transition-group": "^15.6.2",
     "react-copy-to-clipboard": "^5.0.1",
     "react-dom": "^16.8.1",
     "react-full-screen": "^0.2.3",
+    "react-linkify": "^1.0.0-alpha",
+    "react-moment": "^0.9.6",
     "react-router-dom": "latest",
     "react-scripts": "3.2.0",
     "react-toastify": "^4.5.2",
@@ -50,6 +53,7 @@
   },
   "devDependencies": {
     "@types/react-copy-to-clipboard": "^4.2.6",
+    "@types/react-linkify": "^0.2.0",
     "@types/webrtc": "0.0.24"
   }
 }

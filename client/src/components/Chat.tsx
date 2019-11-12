@@ -1,54 +1,49 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
+import Linkify from 'react-linkify';
+import Moment from 'react-moment';
+import { ChatMessage } from '../models';
 
-export class Chat extends Component<{}, { title: string }> {
+export class Chat extends Component<{ messages: ChatMessage[], onSendMessage: (message: string) => void }> {
+
+  handleSend(event: any) {
+    if (event.key === 'Enter') {
+      const inputValue = event.target.value;
+      if (inputValue.length > 0) {
+        this.props.onSendMessage(inputValue);
+        event.target.value = "";
+      }
+    }
+  }
+
+  renderMessages() {
+    const { messages } = this.props;
+    return messages.map(message => {
+      return (
+        <div className="message" key={message.id}>
+          <div className="author">
+            <span className="name">{message.username}</span>
+            <time className="time" title={message.createdAt}>
+              <Moment fromNow interval={30}>{message.createdAt}</Moment>
+            </time>
+          </div>
+          <div className="content">
+            <Linkify>
+              <p>{message.message}</p>
+            </Linkify>
+          </div>
+        </div>
+      );
+    });
+  }
+
   render() {
     return <div className="chat">
       <div className="chat__header">Chat</div>
-      <div className="chat-messages">
-        <div className="message">
-          <div className="author">
-            <span className="name">Jamie Hall</span>
-            <span className="time">10:12 AM, Today</span>
-          </div>
-          <div className="content">
-            <p>Content goes here. This can include links and other content.</p>
-          </div>
-        </div>
-        <div className="message">
-          <div className="author">
-            <span className="name">Jamie Hall</span>
-            <span className="time">10:12 AM, Today</span>
-          </div>
-          <div className="content">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc faucibus, tortor
-              scelerisque aliquam sollicitudin, tellus odio tincidunt mi, in convallis lacus
-              augue eget nisl. Quisque pretium, tortor eget tempus fringilla.
-            </p>
-          </div>
-        </div>
-
-        <div className="message">
-          <div className="author">
-            <span className="name">Joe Bloggs</span>
-            <span className="time">10:12 AM, Today</span>
-          </div>
-          <div className="content">
-            <p>Content goes here. This can include links and other content.</p>
-          </div>
-        </div>
-
-        <div className="message">
-          <div className="author">
-            <span className="name">Jane Doe Hall</span>
-            <span className="time">10:12 AM, Today</span>
-          </div>
-          <div className="content">
-            <p>Content goes here. This can include links and other content.</p>
-          </div>
-        </div>
+      <div className="chat__messages">
+        {this.renderMessages()}
       </div>
-      <div className="send-message">
-        <span>Send message...</span>
+      <div className="chat__box">
+        <input type="text" className="chat__input" autoFocus={true} onKeyDown={this.handleSend.bind(this)} placeholder="Send message..." />
       </div>
     </div>
   }

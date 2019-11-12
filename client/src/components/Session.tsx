@@ -2,9 +2,9 @@ import React, {Component} from 'react';
 import {toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {Chat, Header, Participants, Screen, Toolbar, Modal} from '.';
-import {Peer, Room, ToolbarAction} from '../models';
+import {Peer, Room, ToolbarAction, ChatMessage} from '../models';
 
-export class Session extends Component<{ room: Room, onDisconnect: () => void }, { isChatHidden: boolean, participants: Array<Peer>, localPeer: Peer, presenter: Peer, isFullScreen: boolean, toolbarActions: ToolbarAction[], presenterModalVisible: boolean }> {
+export class Session extends Component<{ room: Room, onDisconnect: () => void }, { isChatHidden: boolean, participants: Array<Peer>, unreadChatMessages: number, chatMessages: Array<ChatMessage>, localPeer: Peer, presenter: Peer, isFullScreen: boolean, toolbarActions: ToolbarAction[], presenterModalVisible: boolean }> {
 
     /**
      * A list of actions for the toolbar
@@ -81,12 +81,14 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
 
     this.state = {
       isFullScreen: false,
-      isChatHidden: false,
+      isChatHidden: true,
       participants: props.room.peers,
       localPeer: props.room.localPeer,
       presenter: props.room.activePeer,
       toolbarActions: this._toolbarActions,
-      presenterModalVisible: false
+      presenterModalVisible: false,
+      unreadChatMessages: 0,
+      chatMessages: []
     };
 
     this.handleChatToggle = this.handleChatToggle.bind(this);
@@ -100,6 +102,21 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
       this.setState({
         participants: peers
       });
+    });
+    
+    room.chatMessages$.subscribe(messages => {
+      if(messages.length > 0) {
+        const {isChatHidden} = this.state;
+        this.setState(prevState => ({
+          ...prevState,
+          chatMessages: messages,
+          unreadChatMessages: isChatHidden ? prevState.unreadChatMessages + 1 : 0
+        }));
+        const lastMessage = messages[messages.length-1];
+        if(!this.isLocalPeerUsername(lastMessage.username)) {
+          this.playNotification('chat-notification');
+        }
+      }
     });
 
     room.activePeer$.subscribe(peer => {
@@ -117,8 +134,21 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
    */
   handleChatToggle(): void {
     this.setState(prevState => ({
-      isChatHidden: !prevState.isChatHidden
+      ...prevState,
+      isChatHidden: !prevState.isChatHidden,
+      unreadChatMessages: prevState.isChatHidden ? 0 : prevState.unreadChatMessages
     }));
+  }
+
+  private playNotification(notification: string): void  {
+    const audio = new Audio(`sounds/${notification}.mp3`)
+    audio.load()
+    audio.play();
+  }
+
+  private isLocalPeerUsername(username: string): boolean {
+    const {room} = this.props;
+    return room.localPeer.userName === username;
   }
 
   /**
@@ -231,10 +261,19 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     this.props.onDisconnect();
   }
 
+  handleSendMessage(message: string) {
+    const {room} = this.props;
+    room.sendChatMessage(message);
+  }
+
   renderChat() {
-    const {isChatHidden} = this.state;
-    if (isChatHidden) {
-      return (<Chat/>);
+    const {isChatHidden, chatMessages} = this.state;
+    if (!isChatHidden) {
+      return (
+        <Chat messages={chatMessages} 
+          onSendMessage={this.handleSendMessage.bind(this)}
+        />
+      );
     }
     return null;
   }
@@ -278,7 +317,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
   render() {
     return (
       <div className="container">
-        <Header link={window.location.href} title={`${this.props.room.name} ${this.state.presenter != null ? '(' + this.state.presenter.userName + ')' : ''}`} toggleChat={this.handleChatToggle}/>
+        <Header link={window.location.href} unreadChatMessages={this.state.unreadChatMessages} title={`${this.props.room.name} ${this.state.presenter != null ? '(' + this.state.presenter.userName + ')' : ''}`} toggleChat={this.handleChatToggle}/>
         <div className="content">
           <Participants participants={this.state.participants} localPeer={this.state.localPeer} onParticipantClick={this.onParticipantClick.bind(this)}/>
           <div className="viewer">

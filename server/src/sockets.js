@@ -20,6 +20,7 @@ module.exports = function (server) {
     socket.on('stream_stopped', streamStopped);
     socket.on('presenter_started', presenterStarted);
     socket.on('presenter_stopped', presenterStopped);
+    socket.on('chat:message', chatMessage);
 
     function create(data, cb) {
       let roomId = shortUUID.generate();
@@ -195,6 +196,20 @@ module.exports = function (server) {
       }
     }
 
+    function chatMessage(data) {
+      if (socket.userData && socket.userData.roomId) {
+        const {userName, roomId} = socket.userData;
+        console.log(socket.userData.userName + ' sent a new chat message to room ' + socket.userData.roomId);
+        const {message} = data;
+        io.in(roomId).emit('chat:message', {
+          id:  shortUUID.generate(),
+          username: userName,
+          message: message,
+          createdAt: new Date()
+        });
+      }
+    }
+
   });
 
 
@@ -227,5 +242,8 @@ module.exports = function (server) {
       return [];
     }
   }
+
+
+
 
 };
