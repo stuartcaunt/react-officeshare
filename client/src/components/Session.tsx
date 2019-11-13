@@ -3,6 +3,7 @@ import {toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {Chat, Header, Participants, Screen, Toolbar, Modal} from '.';
 import {Peer, Room, ToolbarAction, ChatMessage} from '../models';
+import { Subscription } from 'rxjs';
 
 export class Session extends Component<{ room: Room, onDisconnect: () => void }, { isChatHidden: boolean, participants: Array<Peer>, unreadChatMessages: number, chatMessages: Array<ChatMessage>, localPeer: Peer, presenter: Peer, isFullScreen: boolean, toolbarActions: ToolbarAction[], presenterModalVisible: boolean }> {
 
@@ -76,6 +77,10 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     })
   ];
 
+  private _peersSubscription: Subscription; 
+  private _chatSubscription: Subscription; 
+  private _activePeerSubscription: Subscription; 
+
   constructor(props: { room: Room, onDisconnect: () => void }) {
     super(props);
 
@@ -98,13 +103,13 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
 
   public componentDidMount() {
     const {room} = this.props;
-    room.peers$.subscribe(peers => {
+    this._peersSubscription = room.peers$.subscribe(peers => {
       this.setState({
         participants: peers
       });
     });
     
-    room.chatMessages$.subscribe(messages => {
+    this._chatSubscription = room.chatMessages$.subscribe(messages => {
       if(messages.length > 0) {
         const {isChatHidden} = this.state;
         this.setState(prevState => ({
@@ -119,7 +124,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
       }
     });
 
-    room.activePeer$.subscribe(peer => {
+    this._activePeerSubscription = room.activePeer$.subscribe(peer => {
       this._toolbarActions.find(action => action.id === 'present').visible = (peer !== this.state.localPeer && this.state.localPeer.stream !== null);
       this._toolbarActions.find(action => action.id === 'stop-present').visible = (peer === this.state.localPeer && this.state.localPeer.stream !== null);
       this.setState({
@@ -127,6 +132,18 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
         toolbarActions: this._toolbarActions
       });
     });
+  }
+
+  componentWillUnmount() {
+    if (this._peersSubscription !== null) {
+      this._peersSubscription.unsubscribe();
+    }
+    if (this._chatSubscription !== null) {
+      this._chatSubscription.unsubscribe();
+    }
+    if (this._activePeerSubscription !== null) {
+      this._activePeerSubscription.unsubscribe();
+    }
   }
 
   /**

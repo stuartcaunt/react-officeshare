@@ -1,5 +1,5 @@
 const socketIO = require('socket.io');
-const shortUUID = require('short-uuid');
+const shortid = require('shortid');
 
 module.exports = function (server) {
   const io = socketIO.listen(server);
@@ -23,9 +23,9 @@ module.exports = function (server) {
     socket.on('chat:message', chatMessage);
 
     function create(data, cb) {
-      let roomId = shortUUID.generate();
+      let roomId = shortid.generate();
       while (roomDataMap.has(roomId)) {
-        roomId = shortUUID.generate();
+        roomId = shortid.generate();
       }
 
       const roomName = data.roomName || 'room-' + roomId;

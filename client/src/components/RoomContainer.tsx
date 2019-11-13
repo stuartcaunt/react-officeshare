@@ -35,40 +35,24 @@ class RoomContainer extends Component<IProps & {applicationState: ApplicationSta
 
     const history = this.props.history;
 
-    if (id == null) {
-      roomService.create(roomName, username)
-      .then(roomPass => {
-        console.log('Room created with Id ' + roomPass.roomId);
+    roomService.connect(roomName, id, username)
+    .then(room => {
+      this.setRoom(room);
 
-        roomService.joinRoom(roomPass.roomId, username, roomPass.socket)
-        .then(room => {
-          this.setRoom(room);
-
-          history.push({
-            pathname: `/${roomPass.roomId}`,
-            state: {
-              roomName: roomName,
-              username: username
-            }
-          });
-
-        })
-        .catch(error => {
-          console.error('Error getting room: ', error);
-          history.push({pathname: '/'});
+      if (id == null) {
+        history.push({
+          pathname: `/${room.id}`,
+          state: {
+            roomName: roomName,
+            username: username
+          }
         });
-      })
-
-    } else {
-      roomService.connect(id, username)
-      .then(room => {
-        this.setRoom(room);
-      })
-      .catch(error => {
-        console.error('Error getting room: ', error);
-        history.push({pathname: '/'});
-      });
-    }
+      }
+    })
+    .catch(error => {
+      console.error('Error getting room: ', error);
+      history.push({pathname: '/'});
+    });
   }
 
   handleUserNameChange(event: any) {

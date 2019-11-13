@@ -68,6 +68,10 @@ export class Room {
     return this._roomName;
   }
 
+  get id(): string {
+    return this._roomId;
+  }
+
   get followingPresenter(): boolean {
     return this._folowingPresenter;
   }
@@ -83,7 +87,7 @@ export class Room {
     return this._chatMessages$;
   }
 
-  constructor(private _socket: SocketIOClient.Socket, peerDataArrays: Array<any>, presenterPeerId: string, private _roomName: string, private _userName: string) {
+  constructor(private _socket: SocketIOClient.Socket, peerDataArrays: Array<any>, presenterPeerId: string, private _roomId: string, private _roomName: string, private _userName: string) {
 
     // Create a local peer
     this._localPeer = new Peer(this._socket.id, this._userName, this);
