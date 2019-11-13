@@ -4,10 +4,6 @@ export class Video extends Component<{ stream: MediaStream }, {}> {
 
   private _videoElement: HTMLVideoElement;
 
-  constructor(props: any) {
-    super(props);
-  }
-
   public componentDidMount() {
     this._videoElement.srcObject = this.props.stream;
   }

@@ -120,8 +120,8 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     });
 
     room.activePeer$.subscribe(peer => {
-      this._toolbarActions.find(action => action.id === 'present').visible = (peer != this.state.localPeer && this.state.localPeer.stream != null);
-      this._toolbarActions.find(action => action.id === 'stop-present').visible = (peer == this.state.localPeer && this.state.localPeer.stream != null);
+      this._toolbarActions.find(action => action.id === 'present').visible = (peer !== this.state.localPeer && this.state.localPeer.stream !== null);
+      this._toolbarActions.find(action => action.id === 'stop-present').visible = (peer === this.state.localPeer && this.state.localPeer.stream !== null);
       this.setState({
         presenter: peer,
         toolbarActions: this._toolbarActions
@@ -304,7 +304,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
 
   onParticipantClick(peer: Peer) {
     const {room} = this.props;
-    if (room.activePeer != peer) {
+    if (room.activePeer !== peer) {
       room.activePeer = peer;
 
       // Stop following presenter

@@ -2,19 +2,16 @@ import React, {Component} from 'react';
 import {BrowserRouter as Router, Route} from "react-router-dom";
 
 import './App.scss';
-import {RoomContainer} from "./components";
+import RoomContainer from "./components/RoomContainer";
+import {ApplicationContext, INITIAL_APPLICATION_STATE} from './context';
 import {ToastContainer, toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
 class App extends Component<{}, {}> {
 
-  constructor(props: any) {
-    super(props);
-  }
-
   render() {
     return (
-      <div>
+      <ApplicationContext.Provider value={INITIAL_APPLICATION_STATE}>
         <ToastContainer position={toast.POSITION.TOP_RIGHT} 
                         closeOnClick={true}
                         hideProgressBar={true} />
@@ -24,7 +21,7 @@ class App extends Component<{}, {}> {
             <Route exact path="/:id" component={RoomContainer}/>
           </div>
         </Router>
-      </div>
+      </ApplicationContext.Provider>
     );
   }
 

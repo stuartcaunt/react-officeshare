@@ -36,7 +36,7 @@ export class Participant extends Component<{ peer: Peer, onParticipantClick: (pe
     const {peer} = this.props;
     const {stream, isPresenter} = this.state;
     return (<div className={`participant ${this.state.stream == null ? '' : 'participant-selectable'}`} onClick={this.onParticipantClick.bind(this)}>
-      {(stream == null) && <img src="/images/stop-desktop-share-inverted.png"/>}
+      {(stream == null) && <img src="/images/stop-desktop-share-inverted.png" alt="share"/>}
       {(stream != null) && <Video stream={this.state.stream}/>}
       <div className="participant__user">
         <span className="participant__user__content">

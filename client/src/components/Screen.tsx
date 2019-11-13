@@ -5,10 +5,6 @@ import Fullscreen from "react-full-screen";
 
 export class Screen extends Component<{ presenter: Peer, fullScreen: boolean, onExitFullScreenHandler: () => void }, {}> {
 
-  constructor(props: { presenter: Peer , fullScreen: boolean, onExitFullScreenHandler: () => void}) {
-    super(props);
-  }
-
   renderBlankSlate() {
     return (
       <div className="screen__blankslate">

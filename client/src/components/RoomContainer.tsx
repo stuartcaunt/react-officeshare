@@ -4,27 +4,26 @@ import {Session} from './Session';
 import {RoomService} from '../services';
 import {Room} from '../models';
 import {RouteComponentProps} from 'react-router-dom';
+import {ApplicationState, withApplicationContext} from '../context';
 
 interface IProps extends RouteComponentProps<{ id: string }> {
 }
 
-export class RoomContainer extends Component<IProps, { room: Room, roomName: string, username: string, isRoomKnown: boolean }> {
+class RoomContainer extends Component<IProps & {applicationState: ApplicationState}, { room: Room, roomName: string, username: string }> {
 
-
-  constructor(props: IProps) {
+  constructor(props: IProps & {applicationState: ApplicationState}) {
     super(props);
-
-    const {id} = this.props.match.params;
 
     this.state = {
       room: null,
       roomName: '',
-      username: localStorage.getItem('username') || '',
-      isRoomKnown: (id != null)
+      username: localStorage.getItem('username') || ''
     }
   }
 
   public componentDidMount() {
+    const {applicationState} = this.props;
+    this.setState({room: applicationState.room});
   }
 
   handleJoin() {
@@ -34,6 +33,8 @@ export class RoomContainer extends Component<IProps, { room: Room, roomName: str
     const username = this.state.username;
     const roomName = this.state.roomName;
 
+    const history = this.props.history;
+
     if (id == null) {
       roomService.create(roomName, username)
       .then(roomPass => {
@@ -41,28 +42,32 @@ export class RoomContainer extends Component<IProps, { room: Room, roomName: str
 
         roomService.joinRoom(roomPass.roomId, username, roomPass.socket)
         .then(room => {
-          this.setState({room})
+          this.setRoom(room);
 
-          window.history.pushState({
-            id: ''
-          }, '', `http://localhost:3000/${roomPass.roomId}`);
+          history.push({
+            pathname: `/${roomPass.roomId}`,
+            state: {
+              roomName: roomName,
+              username: username
+            }
+          });
 
         })
         .catch(error => {
           console.error('Error getting room: ', error);
-          window.location.href = 'http://localhost:3000';
+          history.push({pathname: '/'});
         });
       })
 
     } else {
       roomService.connect(id, username)
       .then(room => {
-        this.setState({room})
+        this.setRoom(room);
       })
       .catch(error => {
         console.error('Error getting room: ', error);
-        window.location.href = 'http://localhost:3000';
-    });
+        history.push({pathname: '/'});
+      });
     }
   }
 
@@ -78,7 +83,12 @@ export class RoomContainer extends Component<IProps, { room: Room, roomName: str
   }
 
   handleRoomDisconnect() {
-    this.setState({room: null});
+    this.setRoom(null);
+  }
+
+  setRoom(room: Room) {
+    this.setState({room: room});
+    this.props.applicationState.room = room;
   }
 
   renderRoomNameInput() {
@@ -103,7 +113,7 @@ export class RoomContainer extends Component<IProps, { room: Room, roomName: str
     return (<div className="room-join-wrapper">
               <div className="room-join-container">
                 <div className="room-join-container-intro">
-                  <img src={"/images/logo.svg"} />
+                  <img src={"/images/logo.svg"} alt="logo"/>
                   <h2>Welcome to officeshare</h2>
                 </div>
                 <div className="room-join-container-box">
@@ -124,3 +134,5 @@ export class RoomContainer extends Component<IProps, { room: Room, roomName: str
           </div>);
   }
 }
+
+export default withApplicationContext(RoomContainer);

@@ -2,10 +2,6 @@ import React, {Component} from 'react';
 
 export class Modal extends Component<{ isVisible: boolean }, {}> {
 
-  constructor(props: { isVisible: boolean}) {
-    super(props);
-  }
-
   render() {
     const {isVisible} = this.props;
     return (isVisible &&

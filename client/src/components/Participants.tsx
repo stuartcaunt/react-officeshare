@@ -4,10 +4,6 @@ import {Peer} from '../models';
 
 export class Participants extends Component<{ participants: Array<Peer>, localPeer: Peer, onParticipantClick: (peer: Peer) => void }, {}> {
 
-  constructor(props: { participants: Array<Peer>, localPeer: Peer, onParticipantClick: (peer: Peer) => void }) {
-    super(props);
-  }
-
   /**
    * Render local peer
    */

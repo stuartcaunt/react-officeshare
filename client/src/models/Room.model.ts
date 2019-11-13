@@ -40,7 +40,7 @@ export class Room {
     if (this._presenter != null) {
       this._presenter.isPresenter = false;
 
-      if (this.activePeer == this._presenter && this._folowingPresenter) {
+      if (this.activePeer === this._presenter && this._folowingPresenter) {
         this.activePeer = null;
       }
     }
@@ -74,7 +74,7 @@ export class Room {
 
   set followingPresenter(value: boolean) {
     this._folowingPresenter = value;
-    if (this._folowingPresenter && this.activePeer != this._presenter) {
+    if (this._folowingPresenter && this.activePeer !== this._presenter) {
       this.activePeer = this._presenter;
     }
   }
@@ -137,7 +137,7 @@ export class Room {
     this._socket.emit('stream_stopped');
 
     // Check if presenting too
-    if (this.activePeer == this.localPeer) {
+    if (this.activePeer === this.localPeer) {
       this.stopPresenting();
     }
   }
@@ -177,7 +177,7 @@ export class Room {
   }
 
   public onRemoteStreamReceived(peer: Peer) {
-    if (this.activePeer == peer) {
+    if (this.activePeer === peer) {
       this.activePeer = peer;
     }
   }
@@ -196,7 +196,7 @@ export class Room {
 
   private onPeerLeft(message: any) {
     // A peer has left the room
-    const { peerId, userName } = message;
+    const { peerId } = message;
 
     this.removePeer(peerId);
   }

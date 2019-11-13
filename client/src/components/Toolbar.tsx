@@ -3,10 +3,6 @@ import { ToolbarAction } from '../models';
 
 export class Toolbar extends Component<{ actions: ToolbarAction[] }, {}> {
 
-  constructor(props: { actions: ToolbarAction[] }) {
-    super(props);
-  }
-
   renderActions() {
     return this.props.actions
       .filter(action => action.visible)
@@ -19,16 +15,16 @@ export class Toolbar extends Component<{ actions: ToolbarAction[] }, {}> {
    */
   renderAction(action: ToolbarAction) {
     return <li className={`action-item ${action.enabled ? '' : 'action-disabled'}`} role="presentation" key={action.id} onClick={() => action.handler()}>
-      <a className={`action-label icon actions ${action.icon} `} role="button"/>
+      <div className={`action-label icon actions ${action.icon} `} role="button"></div>
       <span className="action-description">{action.label}</span>
-    </li>;
+    </li>
   }
 
   render() {
     return (<div className="toolbar">
       <div className="action-bar">
         <ul className="actions-container" role="toolbar">
-          {this.renderActions()};
+          {this.renderActions()}
         </ul>
       </div>
     </div>);

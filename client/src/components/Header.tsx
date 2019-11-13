@@ -7,9 +7,8 @@ export class Header extends Component<{ title: string, link: string, toggleChat:
   renderLink() {
     const {link} = this.props;
     return (<Fragment>
-      <span>{link}</span>
       <CopyToClipboard text={link} onCopy={() => toast.success('Copied to clipboard')}>
-        <button className="copy-link">Copy link</button>
+        <button className="copy-link">Copy room link</button>
       </CopyToClipboard>
     </Fragment>);
   }
