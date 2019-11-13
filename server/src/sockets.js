@@ -87,8 +87,9 @@ module.exports = function (server) {
   
       } else {
         if (cb) {
+          console.error(`Room with id '${roomId}' does not exist`);
           cb({
-            error: 'Room does not exist'
+            error: `Room with id '${roomId}' does not exist`
           })
         }
       }

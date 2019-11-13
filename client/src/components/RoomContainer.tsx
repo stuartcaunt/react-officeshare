@@ -35,23 +35,33 @@ class RoomContainer extends Component<IProps & {applicationState: ApplicationSta
 
     const history = this.props.history;
 
-    roomService.connect(roomName, id, username)
-    .then(room => {
-      this.setRoom(room);
+    roomService.connect(roomName, id, username);
 
-      if (id == null) {
-        history.push({
-          pathname: `/${room.id}`,
-          state: {
-            roomName: roomName,
-            username: username
+    const roomServiceSubscription = roomService.room$.subscribe(roomData => {
+      if (roomData !== null) {
+        if (roomData.error !== null) {
+          console.error('Error getting room: ', roomData.error);
+
+          roomServiceSubscription.unsubscribe();
+
+          this.setRoom(null);
+          
+          window.location.href = 'http://localhost:3000';
+
+        } else {
+          this.setRoom(roomData.room);
+  
+          if (id == null) {
+            history.push({
+              pathname: `/${roomData.room.id}`,
+              state: {
+                roomName: roomName,
+                username: username
+              }
+            });
           }
-        });
+        }
       }
-    })
-    .catch(error => {
-      console.error('Error getting room: ', error);
-      history.push({pathname: '/'});
     });
   }
 
@@ -71,6 +81,11 @@ class RoomContainer extends Component<IProps & {applicationState: ApplicationSta
   }
 
   setRoom(room: Room) {
+    const previousRoom = this.state.room;
+    if (previousRoom !== null) {
+      previousRoom.disconnect();
+    } 
+
     this.setState({room: room});
     this.props.applicationState.room = room;
   }

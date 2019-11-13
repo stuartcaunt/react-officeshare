@@ -130,19 +130,19 @@ export class Room {
     // Update stream in local peer
     if (this._localPeer.stream != null) {
       this._localPeer.stream.getTracks()[0].stop();
-    }
-    this._localPeer.stream = null;
+      this._localPeer.stream = null;
 
-    this._remotePeers.forEach((peer: Peer) => {
-      peer.onLocalStreamStopped();
-    });
-
-    // Broadcast event to all other peers
-    this._socket.emit('stream_stopped');
-
-    // Check if presenting too
-    if (this.activePeer === this.localPeer) {
-      this.stopPresenting();
+      this._remotePeers.forEach((peer: Peer) => {
+        peer.onLocalStreamStopped();
+      });
+  
+      // Broadcast event to all other peers
+      this._socket.emit('stream_stopped');
+  
+      // Check if presenting too
+      if (this.activePeer === this.localPeer) {
+        this.stopPresenting();
+      }
     }
   }
 

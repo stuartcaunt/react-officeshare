@@ -1,40 +1,40 @@
 import {Room} from '../models';
 import * as socketIoClient from 'socket.io-client';
+import { BehaviorSubject } from 'rxjs';
 
 export class RoomService {
 
+  private _room$: BehaviorSubject<{room: Room, error: string}> = new BehaviorSubject<{room: Room, error: string}>(null);
 
-  public connect(roomName: string, roomId: string, userName: string): Promise<Room> {
-    const self = this;
-    const promise = new Promise<Room>(function (resolve, reject) {
-
-      // Connect to server
-      const socket = socketIoClient.connect(`http://${window.location.hostname}:8000`, {
-        // reconnection: false
-      });
-
-      socket.on('connect', () => {
-        console.log('Connected with id ' + socket.id);
-
-        if (roomId == null) {
-          // Create room
-          socket.emit('create', {roomName: roomName, userName: userName}, (data: any) => {
-            roomId = data.roomId;
-            self.joinRoom(roomId, userName, socket, resolve, reject)
-          });
-  
-        } else {
-          // Join room
-          self.joinRoom(roomId, userName, socket, resolve, reject)
-        }
-      });
-
-    });
-
-    return promise;
+  public get room$(): BehaviorSubject<{room: Room, error: string}> {
+    return this._room$;
   }
 
-  public joinRoom(roomId: string, userName: string, socket: SocketIOClient.Socket, resolve: (room: Room) => void, reject: (error: string) => void) {
+  public connect(roomName: string, roomId: string, userName: string) {
+
+    // Connect to server
+    const socket = socketIoClient.connect(`http://${window.location.hostname}:8000`, {
+      // reconnection: false
+    });
+
+    socket.on('connect', () => {
+      console.log('Connected with id ' + socket.id + ' to room ' + roomId);
+
+      if (roomId == null) {
+        // Create room
+        socket.emit('create', {roomName: roomName, userName: userName}, (data: any) => {
+          roomId = data.roomId;
+          this.joinRoom(roomId, userName, socket)
+        });
+
+      } else {
+        // Join room
+        this.joinRoom(roomId, userName, socket)
+      }
+    });
+  }
+
+  public joinRoom(roomId: string, userName: string, socket: SocketIOClient.Socket) {
     // Join room
     socket.emit('join', {roomId: roomId, userName: userName}, (data: any) => {
       const error = data.error;
@@ -43,12 +43,11 @@ export class RoomService {
       const roomName = data.roomName;
 
       if (error != null) {
-        console.error(error);
-        reject(error);
+        this._room$.next({room: null, error: error});
 
       } else {
         const room = new Room(socket, otherClients, presenterPeerId, roomId, roomName, userName);
-        resolve(room);
+        this._room$.next({room: room, error: null});
       }
     });
   }

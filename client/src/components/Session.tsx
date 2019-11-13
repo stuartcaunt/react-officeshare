@@ -137,12 +137,15 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
   componentWillUnmount() {
     if (this._peersSubscription !== null) {
       this._peersSubscription.unsubscribe();
+      this._peersSubscription = null;
     }
     if (this._chatSubscription !== null) {
       this._chatSubscription.unsubscribe();
+      this._chatSubscription = null;
     }
     if (this._activePeerSubscription !== null) {
       this._activePeerSubscription.unsubscribe();
+      this._activePeerSubscription = null;
     }
   }
 
