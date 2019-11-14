@@ -203,7 +203,7 @@ module.exports = function (server) {
         console.log(socket.userData.userName + ' sent a new chat message to room ' + socket.userData.roomId);
         const {message} = data;
         io.in(roomId).emit('chat:message', {
-          id:  shortUUID.generate(),
+          id:  shortid.generate(),
           username: userName,
           message: message,
           createdAt: new Date()

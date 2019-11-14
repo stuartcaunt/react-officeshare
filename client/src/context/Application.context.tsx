@@ -1,4 +1,17 @@
 import React from 'react';
-import {ApplicationState, INITIAL_APPLICATION_STATE} from './Application.state';
+import { ApplicationBundle, INITIAL_APPLICATION_BUNDLE } from './Application.bundle';
 
-export const ApplicationContext = React.createContext<ApplicationState>(INITIAL_APPLICATION_STATE);
+export const ApplicationContext = React.createContext<ApplicationBundle>(INITIAL_APPLICATION_BUNDLE);
+
+export function withApplicationContext<P>(Component: React.ComponentClass<P>) {
+    return function WrapperComponent(props: any) {
+      return (
+        <ApplicationContext.Consumer>
+          {applicationBundle => <Component {...props} 
+            applicationState={applicationBundle.applicationState}
+            applicationServices={applicationBundle.applicationServices} />}
+        </ApplicationContext.Consumer>
+      );
+    };
+  }
+  

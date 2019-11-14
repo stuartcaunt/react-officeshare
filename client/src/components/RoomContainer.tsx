@@ -1,17 +1,19 @@
 import React, {Component} from 'react';
 
 import {Session} from './Session';
-import {RoomService} from '../services';
 import {Room} from '../models';
 import {RouteComponentProps} from 'react-router-dom';
-import {ApplicationState, withApplicationContext} from '../context';
+import {ApplicationState, withApplicationContext, ApplicationServices} from '../context';
+import { Subscription } from 'rxjs';
 
 interface IProps extends RouteComponentProps<{ id: string }> {
 }
 
-class RoomContainer extends Component<IProps & {applicationState: ApplicationState}, { room: Room, roomName: string, username: string }> {
+class RoomContainer extends Component<IProps & {applicationState: ApplicationState, applicationServices: ApplicationServices}, { room: Room, roomName: string, username: string }> {
 
-  constructor(props: IProps & {applicationState: ApplicationState}) {
+  private _roomServiceSubscription: Subscription;
+
+  constructor(props: IProps & {applicationState: ApplicationState, applicationServices: ApplicationServices}) {
     super(props);
 
     this.state = {
@@ -26,9 +28,16 @@ class RoomContainer extends Component<IProps & {applicationState: ApplicationSta
     this.setState({room: applicationState.room});
   }
 
+  public componentWillUnmount() {
+    if (this._roomServiceSubscription != null) {
+      this._roomServiceSubscription.unsubscribe();
+      this._roomServiceSubscription = null;
+    }
+  }
+
   handleJoin() {
     const {id} = this.props.match.params;
-    const roomService = new RoomService();
+    const roomService = this.props.applicationServices.roomService
 
     const username = this.state.username;
     const roomName = this.state.roomName;
@@ -37,16 +46,21 @@ class RoomContainer extends Component<IProps & {applicationState: ApplicationSta
 
     roomService.connect(roomName, id, username);
 
-    const roomServiceSubscription = roomService.room$.subscribe(roomData => {
+    if (this._roomServiceSubscription != null) {
+      this._roomServiceSubscription.unsubscribe();
+      this._roomServiceSubscription = null;
+    }
+
+    this._roomServiceSubscription = roomService.room$.subscribe(roomData => {
       if (roomData !== null) {
         if (roomData.error !== null) {
           console.error('Error getting room: ', roomData.error);
 
-          roomServiceSubscription.unsubscribe();
-
           this.setRoom(null);
           
-          window.location.href = 'http://localhost:3000';
+          history.push({
+            pathname: `/`,
+          });
 
         } else {
           this.setRoom(roomData.room);

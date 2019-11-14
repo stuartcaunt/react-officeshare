@@ -174,6 +174,8 @@ export class Room {
     this.stopStreaming();
 
     this._socket.emit('leave');
+
+    this._socket.disconnect();
   }
 
   public emit(messageType: string, data: any) {
