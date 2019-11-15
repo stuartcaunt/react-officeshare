@@ -16,6 +16,13 @@ export class Chat extends Component<{ messages: ChatMessage[], onSendMessage: (m
   }
 
   renderMessages() {
+
+    const componentDecorator = (href: string, text: string, key: number) => (
+      <a href={href} key={key} target="_blank">
+        {text}
+      </a>
+    );
+
     const { messages } = this.props;
     return messages.map(message => {
       return (
@@ -27,7 +34,7 @@ export class Chat extends Component<{ messages: ChatMessage[], onSendMessage: (m
             </time>
           </div>
           <div className="content">
-            <Linkify>
+            <Linkify componentDecorator={componentDecorator}>
               <p>{message.message}</p>
             </Linkify>
           </div>
