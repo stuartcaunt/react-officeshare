@@ -7,7 +7,7 @@ const sockets = require('./sockets');
 
 const useHTTPS = true;
 
-const PORT = parseInt(process.env.PORT) || useHTTPS ? 8443 : 8000;
+const PORT = parseInt(process.env.PORT) || 8000;
 console.log(`Running ${useHTTPS ? 'HTTPS' : 'HTTP'} server on port ${PORT}`);
 const serverConfig = useHTTPS ? {
     key: fs.readFileSync(path.resolve(__dirname, '../certs','key.pem')),

@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 app.use(express.static(process.env.SERVE_DIRECTORY || 'build'));
 
-const PORT = parseInt(process.env.PORT) || 8443;
+const PORT = parseInt(process.env.PORT) || 8001;
 console.log(`Running HTTPS server on port ${PORT}`);
 const serverConfig = {
     key: fs.readFileSync(path.resolve(__dirname, './certs','key.pem')),
