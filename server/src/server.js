@@ -5,7 +5,7 @@ const https = require('https');
 const path = require('path');
 const sockets = require('./sockets');
 
-const useHTTPS = false;
+const useHTTPS = true;
 
 const PORT = parseInt(process.env.PORT) || useHTTPS ? 8443 : 8000;
 console.log(`Running ${useHTTPS ? 'HTTPS' : 'HTTP'} server on port ${PORT}`);

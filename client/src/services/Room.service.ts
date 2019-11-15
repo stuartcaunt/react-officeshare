@@ -13,7 +13,7 @@ export class RoomService {
   public connect(roomName: string, roomId: string, userName: string) {
 
     // Connect to server
-    const socket = socketIoClient.connect(`http://${window.location.hostname}:8000`, {
+    const socket = socketIoClient.connect(`https://${window.location.hostname}:8443`, {
       // reconnection: false
     });
 

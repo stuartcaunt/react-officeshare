@@ -127,12 +127,12 @@ class RoomContainer extends Component<IProps & {applicationState: ApplicationSta
               <div className="room-join-container">
                 <div className="room-join-container-intro">
                   <img src={"/images/logo.svg"} alt="logo"/>
-                  <h2>Welcome to officeshare</h2>
+                  <h2>Welcome to OfficeShare</h2>
                 </div>
                 <div className="room-join-container-box">
                   {this.renderRoomNameInput()}
                   <p className="room-join-container-box__help">
-                    Before joining the room, please tell your us your name.
+                    Before joining the room, please tell us your name.
                   </p>
                   <div className="room-join-container-box__username">
                     <input type="text" value={this.state.username} onChange={this.handleUserNameChange.bind(this)} placeholder="Enter your name"/>
