@@ -166,7 +166,6 @@ export class Room {
   }
 
   public sendChatMessage(message: string) {
-    console.log('Sending a new chat message', message);
     this._socket.emit('chat:message', { message });
   }
 
@@ -189,7 +188,6 @@ export class Room {
   }
 
   private onChatMessage(message: ChatMessage) {
-    console.log('Received new chat message', message);
     this._chatMessages$.next(this._chatMessages$.getValue().concat([message]));
   }
 

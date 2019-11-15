@@ -1,31 +1,33 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 
-import {Session} from './Session';
-import {Room} from '../models';
-import {RouteComponentProps} from 'react-router-dom';
-import {ApplicationState, withApplicationContext, ApplicationServices} from '../context';
+import { Session } from './Session';
+import { Room } from '../models';
+import { RouteComponentProps } from 'react-router-dom';
+import { ApplicationState, withApplicationContext, ApplicationServices } from '../context';
+import { RoomJoinForm, RoomCreateForm } from './form';
+
 import { Subscription } from 'rxjs';
 
 interface IProps extends RouteComponentProps<{ id: string }> {
 }
 
-class RoomContainer extends Component<IProps & {applicationState: ApplicationState, applicationServices: ApplicationServices}, { room: Room, roomName: string, username: string }> {
+class RoomContainer extends Component<IProps & { applicationState: ApplicationState, applicationServices: ApplicationServices }, { room: Room, roomName: string, username: string }> {
 
   private _roomServiceSubscription: Subscription;
 
-  constructor(props: IProps & {applicationState: ApplicationState, applicationServices: ApplicationServices}) {
+  constructor(props: IProps & { applicationState: ApplicationState, applicationServices: ApplicationServices }) {
     super(props);
 
     this.state = {
       room: null,
       roomName: '',
-      username: localStorage.getItem('username') || ''
+      username: ''
     }
   }
 
   public componentDidMount() {
-    const {applicationState} = this.props;
-    this.setState({room: applicationState.room});
+    const { applicationState } = this.props;
+    this.setState({ room: applicationState.room });
   }
 
   public componentWillUnmount() {
@@ -35,8 +37,22 @@ class RoomContainer extends Component<IProps & {applicationState: ApplicationSta
     }
   }
 
+
+  onFormSubmit(data: any) {
+    const { roomName, userName} = data;
+
+    if (roomName) {
+      this.setState({ roomName: roomName, username: userName });
+    } else {
+      this.setState({ username: userName });
+    }
+
+    localStorage.setItem('username', userName);
+    this.handleJoin();
+  }
+
   handleJoin() {
-    const {id} = this.props.match.params;
+    const { id } = this.props.match.params;
     const roomService = this.props.applicationServices.roomService
 
     const username = this.state.username;
@@ -57,14 +73,14 @@ class RoomContainer extends Component<IProps & {applicationState: ApplicationSta
           console.error('Error getting room: ', roomData.error);
 
           this.setRoom(null);
-          
+
           history.push({
             pathname: `/`,
           });
 
         } else {
           this.setRoom(roomData.room);
-  
+
           if (id == null) {
             history.push({
               pathname: `/${roomData.room.id}`,
@@ -79,17 +95,6 @@ class RoomContainer extends Component<IProps & {applicationState: ApplicationSta
     });
   }
 
-  handleUserNameChange(event: any) {
-    const username = event.target.value;
-    this.setState({username: username});
-    localStorage.setItem('username', username);
-  }
-
-  handleRoomNameChange(event: any) {
-    const roomName = event.target.value;
-    this.setState({roomName: roomName});
-  }
-
   handleRoomDisconnect() {
     this.setRoom(null);
   }
@@ -98,53 +103,36 @@ class RoomContainer extends Component<IProps & {applicationState: ApplicationSta
     const previousRoom = this.state.room;
     if (previousRoom !== null) {
       previousRoom.disconnect();
-    } 
+    }
 
-    this.setState({room: room});
+    this.setState({ room: room });
     this.props.applicationState.room = room;
   }
 
-  renderRoomNameInput() {
-    const {id} = this.props.match.params;
 
+  renderForm() {
+    const { id } = this.props.match.params;
     if (id == null) {
-      return <div>
-        <p className="room-join-container-box__help">You are about to create a new room. Please enter a room name.</p>
-        <div className="room-join-container-box__username">
-          <input type="text" value={this.state.roomName} onChange={this.handleRoomNameChange.bind(this)} placeholder="Enter room name"/>
-        </div>
-      </div>;
-    } else {
-      return;
+      return (<RoomCreateForm onSubmit={this.onFormSubmit.bind(this)} />);
     }
+    return (<RoomJoinForm onSubmit={this.onFormSubmit.bind(this)} />);
   }
 
   render() {
     if (this.state.room) {
-      return (<Session room={this.state.room} onDisconnect={this.handleRoomDisconnect.bind(this)}/>);
+      return (<Session room={this.state.room} onDisconnect={this.handleRoomDisconnect.bind(this)} />);
     }
     return (<div className="room-join-wrapper">
-              <div className="room-join-container">
-                <div className="room-join-container-intro">
-                  <img src={"/images/logo.svg"} alt="logo"/>
-                  <h2>Welcome to OfficeShare</h2>
-                </div>
-                <div className="room-join-container-box">
-                  {this.renderRoomNameInput()}
-                  <p className="room-join-container-box__help">
-                    Before joining the room, please tell us your name.
-                  </p>
-                  <div className="room-join-container-box__username">
-                    <input type="text" value={this.state.username} onChange={this.handleUserNameChange.bind(this)} placeholder="Enter your name"/>
-                  </div>
-                  <div>
-                    <button onClick={this.handleJoin.bind(this)} className="room-join-container-box__join" type="submit">
-                      Join room
-                    </button>
-                  </div>
-                </div>
-              </div>
-          </div>);
+      <div className="room-join-container">
+        <div className="room-join-container-intro">
+          <img src={"/images/logo.svg"} alt="logo" />
+          <h2>Welcome to OfficeShare</h2>
+        </div>
+        <div className="room-join-container-box">
+          {this.renderForm()}
+        </div>
+      </div>
+    </div>);
   }
 }
 

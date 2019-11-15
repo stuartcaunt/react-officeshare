@@ -18,7 +18,7 @@ export class Chat extends Component<{ messages: ChatMessage[], onSendMessage: (m
   renderMessages() {
 
     const componentDecorator = (href: string, text: string, key: number) => (
-      <a href={href} key={key} target="_blank">
+      <a href={href} key={key} target="_blank" rel="noopener noreferrer" >
         {text}
       </a>
     );
