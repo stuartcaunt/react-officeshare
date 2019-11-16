@@ -4,8 +4,8 @@ export class ChatMessage {
   private _message: string;
   private _createdAt: string;
 
-  constructor(username: string, message: string, createdAt: string) {
-    this.username = username;
+  constructor(userName: string, message: string, createdAt: string) {
+    this.userName = userName;
     this.message = message;
     this.createdAt = createdAt;
   }
@@ -18,11 +18,11 @@ export class ChatMessage {
     return this._id;
   }
 
-  set username(username: string) {
-    this._username = username;
+  set userName(userName: string) {
+    this._username = userName;
   }
 
-  get username() {
+  get userName() {
     return this._username;
   }
 

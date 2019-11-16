@@ -1,9 +1,8 @@
 import React, {Component} from 'react';
-import {toast} from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import {Chat, Header, Participants, Screen, Toolbar, Modal} from '.';
 import {Peer, Room, ToolbarAction, ChatMessage} from '../models';
 import { Subscription } from 'rxjs';
+import { store } from 'react-notifications-component';
 
 export class Session extends Component<{ room: Room, onDisconnect: () => void }, { isChatHidden: boolean, participants: Array<Peer>, unreadChatMessages: number, chatMessages: Array<ChatMessage>, localPeer: Peer, presenter: Peer, isFullScreen: boolean, toolbarActions: ToolbarAction[], presenterModalVisible: boolean }> {
 
@@ -118,7 +117,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
           unreadChatMessages: isChatHidden ? prevState.unreadChatMessages + 1 : 0
         }));
         const lastMessage = messages[messages.length-1];
-        if(!this.isLocalPeerUsername(lastMessage.username)) {
+        if(!this.isLocalPeerUsername(lastMessage.userName)) {
           this.playNotification('chat-notification');
         }
       }
@@ -166,9 +165,9 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     audio.play();
   }
 
-  private isLocalPeerUsername(username: string): boolean {
+  private isLocalPeerUsername(userName: string): boolean {
     const {room} = this.props;
-    return room.localPeer.userName === username;
+    return room.localPeer.userName === userName;
   }
 
   /**
@@ -177,6 +176,21 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
   private isBrowserSupported() {
     const mediaDevices: any = navigator.mediaDevices;
     return typeof mediaDevices.getDisplayMedia === 'function';
+  }
+
+  private addNotification(message: string, type: string) {
+    store.addNotification({
+      message: message,
+      type: type,
+      insert: "top",
+      container: "top-right",
+      animationIn: ["animated", "fadeIn"],
+      animationOut: ["animated", "fadeOut"],
+      dismiss: {
+        duration: 3000,
+        onScreen: false
+      }
+    });
   }
 
   handleFullScreenAction() {
@@ -193,7 +207,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
         mediaDevices.getDisplayMedia(constraints)
           .then((stream: MediaStream) => {
             room.startStreaming(stream);
-            toast.success('You are now sharing your screen');
+            this.addNotification('You are now sharing your screen', 'success');
             stream.oninactive = () => {
               if (room.localPeer.stream != null) {
                 this.handleStopSharingAction();
@@ -209,11 +223,11 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
             this.openPresenterModal();
           })
           .catch((error: Error) => {
-            toast.error('You have decided not to share your screen.');
+            this.addNotification('You have decided not to share your screen.', 'danger');
             console.log('error streaming ', error);
           });
       } else {
-        toast.error("Your browser is not supported. Please upgrade to the latest version of Firefox or Chrome.")
+        this.addNotification("Your browser is not supported. Please upgrade to the latest version of Firefox or Chrome.", 'danger')
       }
     } else {
       room.stopStreaming();
@@ -224,7 +238,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     const {room} = this.props;
     room.stopStreaming();
 
-    toast.success('You have stopped sharing your screen.');
+    this.addNotification('You have stopped sharing your screen', 'success');
 
     this._toolbarActions.find(action => action.id === 'share').visible = true;
     this._toolbarActions.find(action => action.id === 'unshare').visible = false;
@@ -239,7 +253,8 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     this.startFollowing();
 
     room.startPresenting();
-    toast.success('You have started presenting your screen.');
+
+    this.addNotification('You have started presenting your screen', 'success');
 
     this._toolbarActions.find(action => action.id === 'present').visible = false;
     this._toolbarActions.find(action => action.id === 'stop-present').visible = true;
@@ -250,7 +265,7 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
     const {room} = this.props;
     
     room.stopPresenting();
-    toast.success('You have stopped presenting your screen.');
+    this.addNotification('You have stopped presenting your screen', 'success');
 
     this._toolbarActions.find(action => action.id === 'present').visible = true;
     this._toolbarActions.find(action => action.id === 'stop-present').visible = false;
@@ -287,10 +302,11 @@ export class Session extends Component<{ room: Room, onDisconnect: () => void },
   }
 
   renderChat() {
-    const {isChatHidden, chatMessages} = this.state;
+    const {isChatHidden, chatMessages,localPeer} = this.state;
     if (!isChatHidden) {
       return (
         <Chat messages={chatMessages} 
+          userName={localPeer.userName}
           onSendMessage={this.handleSendMessage.bind(this)}
         />
       );

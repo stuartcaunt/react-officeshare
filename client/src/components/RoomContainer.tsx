@@ -11,7 +11,7 @@ import { Subscription } from 'rxjs';
 interface IProps extends RouteComponentProps<{ id: string }> {
 }
 
-class RoomContainer extends Component<IProps & { applicationState: ApplicationState, applicationServices: ApplicationServices }, { room: Room, roomName: string, username: string }> {
+class RoomContainer extends Component<IProps & { applicationState: ApplicationState, applicationServices: ApplicationServices }, { room: Room, roomName: string, userName: string }> {
 
   private _roomServiceSubscription: Subscription;
 
@@ -21,7 +21,7 @@ class RoomContainer extends Component<IProps & { applicationState: ApplicationSt
     this.state = {
       room: null,
       roomName: '',
-      username: ''
+      userName: ''
     }
   }
 
@@ -42,12 +42,12 @@ class RoomContainer extends Component<IProps & { applicationState: ApplicationSt
     const { roomName, userName} = data;
 
     if (roomName) {
-      this.setState({ roomName: roomName, username: userName });
+      this.setState({ roomName: roomName, userName: userName });
     } else {
-      this.setState({ username: userName });
+      this.setState({ userName: userName });
     }
 
-    localStorage.setItem('username', userName);
+    localStorage.setItem('userName', userName);
     this.handleJoin();
   }
 
@@ -55,12 +55,12 @@ class RoomContainer extends Component<IProps & { applicationState: ApplicationSt
     const { id } = this.props.match.params;
     const roomService = this.props.applicationServices.roomService
 
-    const username = this.state.username;
+    const userName = this.state.userName;
     const roomName = this.state.roomName;
 
     const history = this.props.history;
 
-    roomService.connect(roomName, id, username);
+    roomService.connect(roomName, id, userName);
 
     if (this._roomServiceSubscription != null) {
       this._roomServiceSubscription.unsubscribe();
@@ -86,7 +86,7 @@ class RoomContainer extends Component<IProps & { applicationState: ApplicationSt
               pathname: `/${roomData.room.id}`,
               state: {
                 roomName: roomName,
-                username: username
+                userName: userName
               }
             });
           }

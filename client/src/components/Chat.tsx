@@ -3,7 +3,7 @@ import Linkify from 'react-linkify';
 import Moment from 'react-moment';
 import { ChatMessage } from '../models';
 
-export class Chat extends Component<{ messages: ChatMessage[], onSendMessage: (message: string) => void }> {
+export class Chat extends Component<{ messages: ChatMessage[], userName: string, onSendMessage: (message: string) => void }> {
 
   handleSend(event: any) {
     if (event.key === 'Enter') {
@@ -15,6 +15,14 @@ export class Chat extends Component<{ messages: ChatMessage[], onSendMessage: (m
     }
   }
 
+  getClass(message: ChatMessage) {
+    const baseClass = 'message';
+    if (message.userName === this.props.userName) {
+      return baseClass;
+    }
+    return `${baseClass} ${baseClass}--right`;
+  }
+
   renderMessages() {
 
     const componentDecorator = (href: string, text: string, key: number) => (
@@ -24,33 +32,46 @@ export class Chat extends Component<{ messages: ChatMessage[], onSendMessage: (m
     );
 
     const { messages } = this.props;
-    return messages.map(message => {
+    if (messages.length > 0) {
       return (
-        <div className="message" key={message.id}>
-          <div className="author">
-            <span className="name">{message.username}</span>
-            <time className="time" title={message.createdAt}>
-              <Moment fromNow interval={30}>{message.createdAt}</Moment>
-            </time>
-          </div>
-          <div className="content">
-            <Linkify componentDecorator={componentDecorator}>
-              <p>{message.message}</p>
-            </Linkify>
-          </div>
+        <div className="chat__messages">
+          {messages.map(message => {
+            return (
+              <div className={this.getClass(message)} key={message.id}>
+                <div className="author">
+                  <span className="name">{message.userName}</span>
+                  <time className="time" title={message.createdAt}>
+                    <Moment fromNow interval={30}>{message.createdAt}</Moment>
+                  </time>
+                </div>
+                <div className="body">
+                  <Linkify componentDecorator={componentDecorator}>
+                    {message.message}
+                  </Linkify>
+                </div>
+              </div>
+            );
+          })}
         </div>
       );
-    });
+    }
+    return (
+      <div className="chat__blankslate">
+        <p>No chat messages to display</p>
+      </div>
+    )
   }
 
   render() {
     return <div className="chat">
       <div className="chat__header">Chat</div>
-      <div className="chat__messages">
-        {this.renderMessages()}
-      </div>
+      {this.renderMessages()}
       <div className="chat__box">
-        <input type="text" className="chat__input" autoFocus={true} onKeyDown={this.handleSend.bind(this)} placeholder="Send message..." />
+        <input type="text"
+          className="chat__input"
+          autoFocus={true}
+          onKeyDown={this.handleSend.bind(this)}
+          placeholder="Send message..." />
       </div>
     </div>
   }

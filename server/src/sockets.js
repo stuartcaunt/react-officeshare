@@ -1,10 +1,20 @@
 const socketIO = require('socket.io');
 const shortid = require('shortid');
+const logger = require('./logger');
+const path = require('path');
 
-module.exports = function (server) {
+module.exports = function (server, roomService) {
+
   const io = socketIO.listen(server);
-
   const roomDataMap = new Map(); // id: {roomName, activePresenter, owner}
+  
+  // populate room data map from the database
+  roomService.getAll().forEach(room => {
+    roomDataMap.set(room.id, {
+      roomName: room.name, 
+      activePresenter: null
+    });
+  });
 
   io.sockets.on('connection', function (socket) {
 
@@ -23,23 +33,18 @@ module.exports = function (server) {
     socket.on('chat:message', chatMessage);
 
     function create(data, cb) {
-      let roomId = shortid.generate();
-      while (roomDataMap.has(roomId)) {
-        roomId = shortid.generate();
-      }
-
-      const roomName = data.roomName || 'room-' + roomId;
       const userName = data.userName;
-
-      console.log(`${userName} (${socket.id}) is creating room ${roomName} (${roomId})`);
+      const room = roomService.create(data.roomName);
+      const roomName = room.name;
+      const roomId = room.id;
+      logger.info(`${userName} (${socket.id}) is creating room ${roomName} (${roomId})`);
 
       // leave any existing rooms
       leave();
 
       roomDataMap.set(roomId, {
         roomName: roomName, 
-        activePresenter: null,
-        owner: socket.id
+        activePresenter: null
       });
 
       // Send back the generated roomId
@@ -53,10 +58,9 @@ module.exports = function (server) {
     function join(data, cb) {
       const roomId = data.roomId;
       const userName = data.userName;
-
       const roomData = roomDataMap.get(roomId);
 
-      console.log(userName + ' (' + socket.id + ') is joining room ' + roomId);
+      logger.info(userName + ' (' + socket.id + ') is joining room ' + roomId);
 
       // leave any existing rooms
       leave();
@@ -87,7 +91,7 @@ module.exports = function (server) {
   
       } else {
         if (cb) {
-          console.error(`Room with id '${roomId}' does not exist`);
+          logger.error(`Room with id '${roomId}' does not exist`);
           cb({
             error: `Room with id '${roomId}' does not exist`
           })
@@ -97,7 +101,7 @@ module.exports = function (server) {
 
     function leave() {
       if (socket.userData && socket.userData.roomId) {
-        console.log(socket.userData.userName + ' (' + socket.id + ') is leaving room ' + socket.userData.roomId);
+        logger.info(socket.userData.userName + ' (' + socket.id + ') is leaving room ' + socket.userData.roomId);
 
         socket.to(socket.userData.roomId).emit('leave', {
           peerId: socket.id,
@@ -111,7 +115,7 @@ module.exports = function (server) {
 
     function offer(message) {
       const {peerId, data} = message;
-      console.log(socket.userData.userName + ' (' + socket.id + ') sending offer to ' + peerId);
+      logger.info(socket.userData.userName + ' (' + socket.id + ') sending offer to ' + peerId);
 
       io.to(peerId).emit('offer', {
         peerId: socket.id,
@@ -121,7 +125,7 @@ module.exports = function (server) {
 
     function answer(message) {
       const {peerId, data} = message;
-      console.log(socket.userData.userName + ' (' + socket.id + ') sending answer to ' + peerId);
+      logger.info(socket.userData.userName + ' (' + socket.id + ') sending answer to ' + peerId);
 
       io.to(peerId).emit('answer', {
         peerId: socket.id,
@@ -131,7 +135,7 @@ module.exports = function (server) {
 
     function candidate(message) {
       const {peerId, data} = message;
-      console.log(socket.userData.userName + ' (' + socket.id + ') sending candidate to ' + peerId);
+      logger.info(socket.userData.userName + ' (' + socket.id + ') sending candidate to ' + peerId);
 
       io.to(peerId).emit('candidate', {
         peerId: socket.id,
@@ -141,7 +145,7 @@ module.exports = function (server) {
 
     function streamStarted() {
       if (socket.userData && socket.userData.roomId) {
-        console.log(socket.userData.userName + ' (' + socket.id + ') started streaming to room ' + socket.userData.roomId);
+        logger.info(socket.userData.userName + ' (' + socket.id + ') started streaming to room ' + socket.userData.roomId);
 
         socket.userData.streaming = true;
 
@@ -154,7 +158,7 @@ module.exports = function (server) {
     function streamStopped() {
       const roomId = socket.userData.roomId;
       if (socket.userData && roomId) {
-        console.log(socket.userData.userName + ' (' + socket.id + ') stopped streaming to room ' + roomId);
+        logger.info(socket.userData.userName + ' (' + socket.id + ') stopped streaming to room ' + roomId);
 
         socket.userData.streaming = false;
 
@@ -174,7 +178,7 @@ module.exports = function (server) {
       const roomId = socket.userData.roomId;
       if (socket.userData && roomId) {
         if (socket.userData.streaming) {
-          console.log(socket.userData.userName + ' (' + socket.id + ') started presenting to room ' + roomId);
+          logger.info(socket.userData.userName + ' (' + socket.id + ') started presenting to room ' + roomId);
   
           // Update active presenter
           let roomData = roomDataMap.get(roomId); 
@@ -186,7 +190,7 @@ module.exports = function (server) {
           });
   
         } else {
-          console.log(socket.userData.userName + ' (' + socket.id + ') wanted to present to room '  + roomId  + ' but cannot because they are not streaming');
+          logger.info(socket.userData.userName + ' (' + socket.id + ') wanted to present to room '  + roomId  + ' but cannot because they are not streaming');
         }
       }
     }
@@ -200,24 +204,23 @@ module.exports = function (server) {
     function chatMessage(data) {
       if (socket.userData && socket.userData.roomId) {
         const {userName, roomId} = socket.userData;
-        console.log(socket.userData.userName + ' sent a new chat message to room ' + socket.userData.roomId);
+        logger.info(socket.userData.userName + ' sent a new chat message to room ' + socket.userData.roomId);
         const {message} = data;
         io.in(roomId).emit('chat:message', {
           id:  shortid.generate(),
-          username: userName,
+          userName: userName,
           message: message,
           createdAt: new Date()
         });
       }
     }
-
   });
 
 
   function removeActivePresenter(roomId, userName, peerId) {
     let roomData = roomDataMap.get(roomId); 
     if (roomData != null && roomData.activePresenter === peerId) {
-      console.log(userName + ' (' + peerId + ') stopped presenting to room ' + roomId);
+      logger.info(userName + ' (' + peerId + ') stopped presenting to room ' + roomId);
 
       // Update active presenter
       roomData.activePresenter = null;
@@ -231,20 +234,15 @@ module.exports = function (server) {
     const adapter = io.nsps['/'].adapter;
     if (adapter.rooms[roomId] != null) {
       const socketIds = Object.keys(adapter.rooms[roomId].sockets);
-
       return socketIds.map(socketId => {
         return {
           id: socketId,
           userData: adapter.nsp.connected[socketId].userData
         }
       });
-
     } else {
       return [];
     }
   }
-
-
-
 
 };
